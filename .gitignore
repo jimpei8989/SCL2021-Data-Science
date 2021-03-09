@@ -1,0 +1,12 @@
+# Python
+.python-version
+*.pyc
+__pycache__/
+
+# Misc
+.DS_Store
+*tmp*
+
+/dataset
+/models
+/checkpoints
