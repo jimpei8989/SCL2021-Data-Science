@@ -4,6 +4,7 @@
 __pycache__/
 
 # Misc
+/.vscode/
 .DS_Store
 *tmp*
 
