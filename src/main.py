@@ -49,6 +49,9 @@ def main(args):
 
         model = HamsBert(backbone=BertModel.from_pretrained(args.bert_name))
 
+        if not args.checkpoint_dir.is_dir():
+            args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
         train(
             model,
             train_loader,
@@ -78,14 +81,16 @@ def parse_args():
     parser.add_argument("--bert_name", default="cahya/bert-base-indonesian-522M")
 
     # Trainers
-    parser.add_argument("--epochs", type=int, default=0)
+    parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--learning_rate", type=float, default=1e-3)
+    parser.add_argument("--early_stopping", type=int, default=5)
     parser.add_argument("--weight_decay", type=float, default=0)
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_workers", type=int, default=1)
 
     # Filesystem
     parser.add_argument("--dataset_dir", type=Path, default="dataset/")
+    parser.add_argument("--checkpoint_dir", type=Path, default="checkpoints/default/")
     parser.add_argument("--output_csv", type=Path, default="output.csv")
 
     # Actions
