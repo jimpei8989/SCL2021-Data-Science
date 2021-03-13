@@ -1,5 +1,6 @@
 import sys
 import json
+from tqdm import trange
 
 from torch.utils.data import Dataset
 
@@ -31,9 +32,13 @@ class IndonesiaAddressDataset(Dataset):
     def tokenize(self, text):
         return tokenize_addr(self.tokenizer, text)
 
-    def prepare_all(self):
-        for i in range(len(self)):
+    def prepare_all_and_dump(self, dump_json_path=None):
+        for i in trange(len(self.data), desc="prepare dataset", leave=False, ncols=80):
             self.prepare(i)
+
+        if dump_json_path:
+            with open(dump_json_path, "w") as f:
+                json.dump(self.data, indent=2)
 
     def prepare(self, index, debug=False):
         data = self.data[index]

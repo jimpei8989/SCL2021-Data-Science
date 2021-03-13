@@ -5,6 +5,9 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from dataset import IndonesiaAddressDataset
+from model import get_default_model
+
 
 def set_seed(seed):
     random.seed(seed)
@@ -14,6 +17,16 @@ def set_seed(seed):
 
 def main(args):
     set_seed(args.seed)
+
+    tokenizer, model = get_default_model()
+    dataset = IndonesiaAddressDataset.from_json(args.dataset_dir / "train_dataset.json")
+    dataset.set_tokenizer(tokenizer)
+
+    print("> Dataset created")
+
+    dataset.prepare_all_and_dump(args.dataset_dir, "train_prepared.json")
+
+    print("> Dataset prepared")
 
 
 def parse_args():

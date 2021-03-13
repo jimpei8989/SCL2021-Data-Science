@@ -2,7 +2,7 @@ import sys
 import time
 
 
-class EventTimer:
+class Timer:
     def __init__(self, name="", verbose=True):
         self._name = name
         self._verbose = verbose
@@ -30,7 +30,7 @@ class EventTimer:
 
 def timer(func):
     def wrapper(*args, **kwargs):
-        with EventTimer(verbose=False) as et:
+        with Timer(verbose=False) as et:
             ret = func(*args, **kwargs)
             return (et.get_time(), ret)
 
