@@ -18,7 +18,7 @@ class IndonesiaAddressDataset(Dataset):
         self.train = train
 
     def __len__(self):
-        return self.data
+        return len(self.data)
 
     def get_train_item(self, index):
         data = self.data[index]
