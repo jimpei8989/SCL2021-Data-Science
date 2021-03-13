@@ -16,7 +16,7 @@ HAMSTERR
 ### Preprocessing Dataset
 
 ```sh
-python3 src/preprocess_dataset.py --do_preprocess
+python3 src/main.py --do_preprocess
 ```
 
 #### Help message
