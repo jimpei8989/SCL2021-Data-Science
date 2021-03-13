@@ -1,6 +1,5 @@
 from transformers import BertTokenizer, BertModel
-import torch.nn as nn
-from tokenizer_utils import tokenize_addr
+from torch import nn
 
 from tokenizer_utils import tokenize_addr
 
@@ -12,7 +11,14 @@ class HamsBert(nn.Module):
         self.fc = nn.Sequential(nn.Linear(768, 2), nn.Sigmoid())
 
     def forward(self, x):
-        x = self.backbone(**x)
+        """
+        Arguments
+            x: torch.LongTensor, of shape (BS, sequence length)
+
+        Returns
+            y: torch.FloatTensor, of shape (BS, sequence length, 2)
+        """
+        x = self.backbone(input_ids=x)
         x = self.fc(x["last_hidden_state"])
         return x
 
