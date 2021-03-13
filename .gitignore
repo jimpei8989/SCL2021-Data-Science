@@ -8,6 +8,10 @@ __pycache__/
 .DS_Store
 *tmp*
 
-/dataset
-/models
-/checkpoints
+dataset/*.csv
+dataset/*.zip
+
+models/*
+
+checkpoints/*
+
