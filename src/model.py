@@ -1,5 +1,6 @@
 from transformers import BertTokenizer, BertModel
 import torch.nn as nn
+from tokenizer_utils import tokenize_addr
 
 from tokenizer_utils import tokenize_addr
 
