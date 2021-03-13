@@ -90,14 +90,21 @@ def train(model, train_loader, val_loader, lr=1e-4, epochs=100, early_stopping=5
 
     min_val_loss, not_improved = 100000, 0
     for e in range(epochs):
-        train_loss, train_acc, train_acc_sen = iterate_dataloader(train_loader)
-
+        train_loss, train_token_acc, train_sentence_acc = iterate_dataloader(
+            train_loader, train=True
+        )
         print(
             f"Epoch {e+1}/{epochs}: [Train] loss = {train_loss:.4f}, "
-            f"acc_per_token = {train_acc:.4f}, acc_per_sentence = {train_acc_sen:.4f}"
+            f"acc_per_token = {train_token_acc:.4f}, "
+            f"acc_per_sentence = {train_sentence_acc:.4f}"
         )
 
-        val_loss, _, _ = iterate_dataloader(val_loader)
+        val_loss, val_token_acc, val_sentence_acc = iterate_dataloader(val_loader)
+        print(
+            f"[Val] loss = {val_loss:.4f}, "
+            f"acc_per_token = {val_token_acc:.4f}, "
+            f"acc_per_sentence = {val_sentence_acc:.4f}"
+        )
 
         if val_loss < min_val_loss:
             min_val_loss = val_loss
