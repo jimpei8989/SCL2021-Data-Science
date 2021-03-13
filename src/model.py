@@ -1,6 +1,7 @@
 from transformers import BertTokenizer, BertModel
 import torch
 import torch.nn as nn
+from tokenizer_utils import tokenize_addr
 
 class HamsBert(nn.Module):
     def __init__(self, backbone):
@@ -20,12 +21,6 @@ def get_default_model(model_name='cahya/bert-base-indonesian-522M'):
     model = HamsBert(backbone)
 
     return tokenizer, model
-
-def tokenize_addr(tokenizer, text):
-    encoded_input = tokenizer(text, return_tensors='pt')
-    tokened_res = [tokenizer.convert_ids_to_tokens(c) for c in encoded_input['input_ids']]
-
-    return encoded_input, tokened_res
 
 if __name__ == '__main__':
     tokenizer, model = get_default_model()
