@@ -94,7 +94,7 @@ def train(
                     )
 
         return tuple(
-            map(lambda v: v / len(dataloader)), [total_loss, total_token_acc, total_sentence_acc]
+            map(lambda v: v / len(dataloader), [total_loss, total_token_acc, total_sentence_acc])
         )
 
     min_val_loss, not_improved = 100000, 0
