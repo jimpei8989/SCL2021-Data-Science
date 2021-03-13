@@ -21,3 +21,4 @@ tqdm==4.59.0
 transformers==4.3.3
 typing-extensions==3.7.4.3
 urllib3==1.26.3
+transformers==4.3.3
