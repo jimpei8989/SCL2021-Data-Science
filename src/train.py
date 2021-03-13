@@ -1,6 +1,11 @@
 import torch
 import torch.nn as nn
 
+
+def evaluate(model, loader):
+    pass
+
+
 def train(model, train_loader, val_loader, lr=1e-3, epochs=100, early_stopping=5, model_path=None):
     '''
     Training function 
@@ -13,4 +18,4 @@ def train(model, train_loader, val_loader, lr=1e-3, epochs=100, early_stopping=5
                               if set to -1, means not adapt early stopping
         model_path: (str) if not None, save the best model to the path
     '''
-
+    pass
