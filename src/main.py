@@ -1,3 +1,4 @@
+import os
 import random
 from argparse import ArgumentParser
 from pathlib import Path
@@ -109,11 +110,14 @@ def parse_args():
     parser.add_argument(
         "--seed", type=int, default=0x06902024 ^ 0x06902029 ^ 0x06902066 ^ 0x06902074
     )
-    parser.add_argument("--gpu", action="store_true")
+    parser.add_argument("--cpu", action="store_true")
+    parser.add_argument("--gpu", default='0')
 
     args = parser.parse_args()
 
-    args.device = torch.device("cuda" if args.gpu else "cpu")
+    args.device = torch.device("cpu" if args.cpu else "cuda")
+    if not args.cpu:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
     return args
 
