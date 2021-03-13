@@ -13,7 +13,11 @@ HAMSTERR
 // TBD
 ```
 
-### How to run our script?
+### Preprocessing Dataset
+
+```sh
+python3 src/main.py --do_preprocess
+```
 
 #### Help message
 
