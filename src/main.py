@@ -4,8 +4,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
+from transformers import BertModel
 
 from dataset import IndonesiaAddressDataset
+from model import HamsBert
+from train import train
 from preprocess_dataset import preprocess_dataset
 
 
@@ -18,15 +22,40 @@ def set_seed(seed):
 def main(args):
     set_seed(args.seed)
 
+    def to_dataloader(dataset, **kwargs):
+        return DataLoader(
+            dataset, batch_size=args.batch_size, num_workers=args.num_workers, **kwargs
+        )
+
     if args.do_preprocess:
         print("> Preprocessing dataset")
         preprocess_dataset(args)
 
-    train_dataset = IndonesiaAddressDataset.from_json(
-        args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
-    )
+    if args.do_train:
+        train_loader = to_dataloader(
+            IndonesiaAddressDataset.from_json(
+                args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+            ),
+            shuffle=True
+        )
 
-    print("> Dataset prepared")
+        val_loader = to_dataloader(
+            IndonesiaAddressDataset.from_json(
+                args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
+            )
+        )
+
+        model = HamsBert(backbone=BertModel.from_pretrained(args.bert_name))
+
+        train(
+            model,
+            train_loader,
+            val_loader,
+            lr=args.learning_rate,
+            epochs=args.epochs,
+            early_stopping=args.early_stopping,
+            model_path=args.checkpoint_dir / "model_best.pt",
+        )
 
 
 def parse_args():
