@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from transformers import BertModel
 
 from dataset import IndonesiaAddressDataset
+from dataset_utils import create_batch
 from model import HamsBert
 
 from preprocess_dataset import preprocess_dataset
@@ -22,11 +23,16 @@ def set_seed(seed):
 
 
 def main(args):
+    print(args)
     set_seed(args.seed)
 
     def to_dataloader(dataset, **kwargs):
         return DataLoader(
-            dataset, batch_size=args.batch_size, num_workers=args.num_workers, **kwargs
+            dataset,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            collate_fn=create_batch,
+            **kwargs,
         )
 
     if args.do_preprocess:
@@ -38,7 +44,7 @@ def main(args):
             IndonesiaAddressDataset.from_json(
                 args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
             ),
-            shuffle=True
+            shuffle=True,
         )
 
         val_loader = to_dataloader(
@@ -85,8 +91,8 @@ def parse_args():
     parser.add_argument("--learning_rate", type=float, default=1e-3)
     parser.add_argument("--early_stopping", type=int, default=5)
     parser.add_argument("--weight_decay", type=float, default=0)
-    parser.add_argument("--batch_size", type=int, default=1)
-    parser.add_argument("--num_workers", type=int, default=1)
+    parser.add_argument("--batch_size", type=int, default=256)
+    parser.add_argument("--num_workers", type=int, default=8)
 
     # Filesystem
     parser.add_argument("--dataset_dir", type=Path, default="dataset/")
@@ -102,8 +108,12 @@ def parse_args():
     parser.add_argument(
         "--seed", type=int, default=0x06902024 ^ 0x06902029 ^ 0x06902066 ^ 0x06902074
     )
+    parser.add_argument("--gpu", action="store_true")
 
     args = parser.parse_args()
+
+    args.device = torch.device("cuda" if args.gpu else "cpu")
+
     return args
 
 

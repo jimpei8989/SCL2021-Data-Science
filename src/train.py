@@ -11,7 +11,7 @@ def evaluate(model, loader):
     val_num = 0
     with torch.no_grad():
         for (x, y) in loader:
-            x, y = x.cuda(), y.cuda()
+            x, y = x.to(device), y.to(device)
             pred = model(x)
             loss = criterion(pred, y)
             val_loss += loss.item() * y.shape[0]
@@ -29,7 +29,16 @@ def evaluate(model, loader):
     return val_loss, val_acc, val_acc_sen
 
 
-def train(model, train_loader, val_loader, lr=1e-4, epochs=100, early_stopping=5, model_path=None):
+def train(
+    model,
+    train_loader,
+    val_loader,
+    lr=1e-4,
+    epochs=100,
+    early_stopping=5,
+    model_path=None,
+    device=None,
+):
     """
     Training function
         model: (nn.Module) BERT-based model
@@ -44,7 +53,7 @@ def train(model, train_loader, val_loader, lr=1e-4, epochs=100, early_stopping=5
     criterion = nn.BCELoss()
     optimizer = Adam(model.parameters(), lr=lr)
 
-    model = model.cuda()
+    model.to(device)
 
     def iterate_dataloader(dataloader, train=False):
         model.train() if train else model.eval()
@@ -55,13 +64,13 @@ def train(model, train_loader, val_loader, lr=1e-4, epochs=100, early_stopping=5
                 if train:
                     optimizer.zero_grad()
 
-                pred = model(batch["input_ids"].cuda())
+                pred = model(batch["input_ids"].to(device))
 
                 y = torch.stack([batch["scores_poi"], batch["scores_street"]], dim=-1)
-                loss = criterion(pred, y)
+                loss = criterion(pred, y.to(device))
 
-                # loss_poi = criterion(pred[..., 0], batch["scores_poi"].cuda())
-                # loss_street = criterion(pred[..., 1], batch["scores_street"].cuda())
+                # loss_poi = criterion(pred[..., 0], batch["scores_poi"].to(device))
+                # loss_street = criterion(pred[..., 1], batch["scores_street"].to(device))
                 # loss = loss_poi + loss_street
 
                 if train:
