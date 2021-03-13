@@ -6,7 +6,7 @@ import numpy as np
 import torch
 
 from dataset import IndonesiaAddressDataset
-from model import get_default_model
+from preprocess_dataset import preprocess_dataset
 
 
 def set_seed(seed):
@@ -18,13 +18,13 @@ def set_seed(seed):
 def main(args):
     set_seed(args.seed)
 
-    tokenizer, model = get_default_model()
-    dataset = IndonesiaAddressDataset.from_json(args.dataset_dir / "train_dataset.json")
-    dataset.set_tokenizer(tokenizer)
+    if args.do_preprocess:
+        print("> Preprocessing dataset")
+        preprocess_dataset(args)
 
-    print("> Dataset created")
-
-    dataset.prepare_all_and_dump(args.dataset_dir, "train_prepared.json")
+    train_dataset = IndonesiaAddressDataset.from_json(
+        args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+    )
 
     print("> Dataset prepared")
 
@@ -33,6 +33,7 @@ def parse_args():
     parser = ArgumentParser()
 
     # Configs
+    parser.add_argument("--bert_name", default="cahya/bert-base-indonesian-522M")
 
     # Trainers
     parser.add_argument("--epochs", type=int, default=0)
@@ -45,17 +46,16 @@ def parse_args():
     parser.add_argument("--dataset_dir", type=Path, default="dataset/")
 
     # Actions
-    parser.add_argument("--do_all", action="store_true")
+    parser.add_argument("--do_preprocess", action="store_true")
+    parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_predict", action="store_true")
 
     # Misc
-    parser.add_argument("--seed", type=int, default=0x06902029)
+    parser.add_argument(
+        "--seed", type=int, default=0x06902024 ^ 0x06902029 ^ 0x06902066 ^ 0x06902074
+    )
 
     args = parser.parse_args()
-    if args.do_all:
-        for key in args.__dict__:
-            if key.startswith("do_"):
-                setattr(args, key, True)
     return args
 
 
