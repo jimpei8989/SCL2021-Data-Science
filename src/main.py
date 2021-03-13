@@ -9,8 +9,10 @@ from transformers import BertModel
 
 from dataset import IndonesiaAddressDataset
 from model import HamsBert
-from train import train
+
 from preprocess_dataset import preprocess_dataset
+from train import train
+from predict import predict
 
 
 def set_seed(seed):
@@ -57,6 +59,17 @@ def main(args):
             model_path=args.checkpoint_dir / "model_best.pt",
         )
 
+    if args.do_predict:
+        model = HamsBert.from_checkpoint()
+
+        test_loader = to_dataloader(
+            IndonesiaAddressDataset.from_json(
+                args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json",
+            )
+        )
+
+        predict(model, test_loader, output_csv=args.output_csv)
+
 
 def parse_args():
     parser = ArgumentParser()
@@ -73,6 +86,7 @@ def parse_args():
 
     # Filesystem
     parser.add_argument("--dataset_dir", type=Path, default="dataset/")
+    parser.add_argument("--output_csv", type=Path, default="output.csv")
 
     # Actions
     parser.add_argument("--do_preprocess", action="store_true")
