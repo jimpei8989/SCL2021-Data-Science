@@ -9,6 +9,7 @@ __pycache__/
 *tmp*
 
 dataset/*.csv
+dataset/*.json
 dataset/*.zip
 
 models/*
