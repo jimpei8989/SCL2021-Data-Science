@@ -66,7 +66,7 @@ def train(
 
                 pred = model(batch["input_ids"].to(device))
 
-                y = torch.stack([batch["scores_poi"], batch["scores_street"]], dim=-1)
+                y = torch.stack([batch["scores_poi"], batch["scores_street"]], dim=-1).to(device)
                 loss = criterion(pred, y.to(device))
 
                 # loss_poi = criterion(pred[..., 0], batch["scores_poi"].to(device))
