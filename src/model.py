@@ -1,5 +1,6 @@
 from transformers import BertTokenizer, BertModel
 from torch import nn
+import torch
 
 from tokenizer_utils import tokenize_addr
 
@@ -9,6 +10,12 @@ class HamsBert(nn.Module):
         super().__init__()
         self.backbone = backbone
         self.fc = nn.Sequential(nn.Linear(768, 2), nn.Sigmoid())
+
+    def from_checkpoint(path):
+        model = HamsBert(backbone=BertModel.from_pretrained('cahya/bert-base-indonesian-522M'))
+        model.load_state_dict(torch.load(path / "model_best.pt"))
+
+        return model
 
     def forward(self, x):
         """

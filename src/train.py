@@ -4,29 +4,11 @@ import torch.nn as nn
 
 
 def evaluate(model, loader, device):
-    criterion = nn.BCELoss()
-
     model.eval()
-    val_loss, val_acc, val_acc_sen = 0.0, 0.0, 0.0
-    val_num = 0
     with torch.no_grad():
-        for (x, y) in loader:
-            x, y = x.to(device), y.to(device)
-            pred = model(x)
-            loss = criterion(pred, y)
-            val_loss += loss.item() * y.shape[0]
-
-            correct = (y == torch.round(pred)).to(torch.float)
-            val_acc += correct.mean() * y.shape[0]
-            val_acc_sen += correct.reshape(correct.shape[0], -1).min(dim=1)[0].mean() * y.shape[0]
-            val_num += y.shape[0]
-
-    val_loss, val_acc, val_acc_sen = val_loss / val_num, val_acc / val_num, val_acc_sen / val_num
-    print(
-        f"[Val] loss = {val_loss:.4f}, acc_per_token = {val_acc:.4f}, "
-        f"acc_per_sentence = {val_acc_sen:.4f}"
-    )
-    return val_loss, val_acc, val_acc_sen
+        for i, batch in enumerate(loader):
+            print(batch)
+            exit()
 
 
 def train(

@@ -13,7 +13,7 @@ from dataset_utils import create_batch
 from model import HamsBert
 
 from preprocess_dataset import preprocess_dataset
-from train import train
+from train import train, evaluate
 from predict import predict
 
 
@@ -71,8 +71,24 @@ def main(args):
             device=args.device,
         )
 
+    if args.do_evaluate:
+        model = HamsBert.from_checkpoint(args.checkpoint_dir)
+        train_loader = to_dataloader(
+            IndonesiaAddressDataset.from_json(
+                args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+            )
+        )
+
+        val_loader = to_dataloader(
+            IndonesiaAddressDataset.from_json(
+                args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
+            )
+        )
+
+        evaluate(model, train_loader, device=args.device)
+
     if args.do_predict:
-        model = HamsBert.from_checkpoint()
+        model = HamsBert.from_checkpoint(args.checkpoint_dir)
 
         test_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
@@ -106,6 +122,7 @@ def parse_args():
     parser.add_argument("--do_preprocess", action="store_true")
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_predict", action="store_true")
+    parser.add_argument("--do_evaluate", action="store_true")
 
     # Misc
     parser.add_argument(
