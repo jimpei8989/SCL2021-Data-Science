@@ -3,7 +3,7 @@ from torch.optim import Adam
 import torch.nn as nn
 
 
-def evaluate(model, loader):
+def evaluate(model, loader, device):
     criterion = nn.BCELoss()
 
     model.eval()
