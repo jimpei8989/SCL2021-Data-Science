@@ -34,6 +34,7 @@ def train(
     train_loader,
     val_loader,
     lr=1e-4,
+    weight_decay=0,
     epochs=100,
     early_stopping=5,
     model_path=None,
@@ -120,6 +121,7 @@ def train(
             not_improved = 0
             if model_path is not None:
                 torch.save(model.state_dict(), model_path)
+                print(f"Improved! Save to {model_path} ... ")
         else:
             not_improved += 1
             if early_stopping > 0 and not_improved == early_stopping:

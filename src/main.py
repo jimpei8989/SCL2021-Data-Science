@@ -64,6 +64,7 @@ def main(args):
             train_loader,
             val_loader,
             lr=args.learning_rate,
+            weight_decay=args.weight_decay,
             epochs=args.epochs,
             early_stopping=args.early_stopping,
             model_path=args.checkpoint_dir / "model_best.pt",
