@@ -19,6 +19,7 @@ def train(
     weight_decay=0,
     epochs=100,
     early_stopping=5,
+    freeze_backbone=False,
     model_path=None,
     device=None,
 ):
@@ -34,7 +35,10 @@ def train(
         model_path: (str) if not None, save the best model to the path
     """
     criterion = nn.BCELoss()
-    optimizer = Adam(model.parameters(), lr=lr)
+    if freeze_backbone:
+        optimizer = Adam(model.fc.parameters(), lr=lr, weight_decay=weight_decay)
+    else:
+        optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     model.to(device)
 
