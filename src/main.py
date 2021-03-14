@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from transformers import BertModel
+from transformers import BertModel, BertTokenizer
 
 from dataset import IndonesiaAddressDataset
 from dataset_utils import create_batch
@@ -89,14 +89,16 @@ def main(args):
 
     if args.do_predict:
         model = HamsBert.from_checkpoint(args.checkpoint_dir)
+        tokenizer = BertTokenizer.from_pretrained(args.bert_name)
 
         test_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
                 args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json",
+                train=False
             )
         )
-
-        predict(model, test_loader, output_csv=args.output_csv)
+        tokenizer = BertTokenizer.from_pretrained(args.bert_name)
+        predict(model, tokenizer, test_loader, output_csv=args.output_csv, device=args.device)
 
 
 def parse_args():
