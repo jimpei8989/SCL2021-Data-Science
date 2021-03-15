@@ -6,7 +6,7 @@ from transformers.models.bert.tokenization_bert import BertTokenizer
 
 
 def reconstruct(source: str, tokenized: List[str], mask=None):
-    assert mask is None or len(tokenized) == len(mask)
+    # assert mask is None or len(tokenized) == len(mask)
 
     cursor = 0
     begining_indices = []
