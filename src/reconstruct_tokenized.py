@@ -62,7 +62,7 @@ def test():
             print(f"!!! {sample['address']} - {tokenized} - {reconstructed}")
 
         poi = reconstruct(sample["address"], tokenized, sample["scores_poi"][1:-1])
-        street = reconstruct( sample["address"], tokenized, sample["scores_street"][1:-1])
+        street = reconstruct(sample["address"], tokenized, sample["scores_street"][1:-1])
 
         if poi != sample["poi"] or street != sample["street"]:
             # print(f"!!? {sample['poi']} - {sample['scores_poi'][1:-1]} - {poi}")
