@@ -332,10 +332,10 @@ def mapping_data(data_df, mapping_df):
         mapping_2_poi, unique_mapping_2_poi = find_mapping_2(mapping_df['raw_address'], mapping_df['POI'], dup_mapping_poi, return_unique=True)
         mapping_2_street, unique_mapping_2_street = find_mapping_2(mapping_df['raw_address'], mapping_df['street'], dup_mapping_street, return_unique=True)
 
-        calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping_poi)
-        calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping_street)
-        calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping_poi, unique_mapping_2_poi)
-        calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping_street, unique_mapping_2_street)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping_poi)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping_street)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping_poi, unique_mapping_2_poi)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping_street, unique_mapping_2_street)
 
         data_df = split_POI_street(data_df)
         data_df['POI'] = data_df['POI'].apply(apply_mapping, args=(unique_mapping_poi, unique_mapping_2_poi))

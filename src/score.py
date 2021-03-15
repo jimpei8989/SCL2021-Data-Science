@@ -17,6 +17,9 @@ if __name__ == '__main__':
     args = get_args()
     input_df = pd.read_csv(args.input)
     output_df = pd.read_csv(args.output)
+
+    input_df = input_df.loc[output_df['id']].reset_index()
+
     if 'POI/street' in input_df:
         score = (input_df['POI/street'] == output_df['POI/street']).mean()
         print(f'accuracy = {score * 100}%')
