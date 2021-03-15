@@ -98,7 +98,6 @@ def main(args):
                 train=False
             )
         )
-        tokenizer = BertTokenizer.from_pretrained(args.bert_name)
         predict(model, tokenizer, test_loader, output_csv=args.output_csv, device=args.device)
 
 
@@ -140,7 +139,6 @@ def parse_args():
     args.device = torch.device("cpu" if args.cpu else "cuda")
     if not args.cpu:
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
-
     return args
 
 

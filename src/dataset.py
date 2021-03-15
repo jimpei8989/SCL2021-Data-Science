@@ -23,6 +23,7 @@ class IndonesiaAddressDataset(Dataset):
     def get_train_item(self, index):
         data = self.data[index]
         return {
+            "address": data["address"],
             "input_ids": torch.as_tensor(data["input_ids"], dtype=torch.long),
             "scores_poi": torch.as_tensor(data["scores_poi"], dtype=torch.float32),
             "scores_street": torch.as_tensor(data["scores_street"], dtype=torch.float32),
@@ -32,6 +33,7 @@ class IndonesiaAddressDataset(Dataset):
         data = self.data[index]
         return {
             "id": data["id"],
+            "address": data["address"],
             "input_ids": torch.as_tensor(data["input_ids"], dtype=torch.long),
         }
 
