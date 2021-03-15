@@ -68,7 +68,9 @@ def preprocess_dataset(args):
         prepare(d, tokenizer) for d in tqdm(data, desc="Preparing train dataset", ncols=80)
     ]
 
-    train_data, val_data = train_test_split(tokenized_data, test_size=0.2, random_state=args.seed)
+    train_data, val_data, train_df, valid_df = train_test_split(tokenized_data, train_df, test_size=0.2, random_state=args.seed)
+    train_df.sort_values(by="id").to_csv(args.dataset_dir / 'train_split.csv', index=False)
+    valid_df.sort_values(by="id").to_csv(args.dataset_dir / 'valid_split.csv', index=False)
 
     train_dataset_json = args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json"
     with open(train_dataset_json, "w") as f:
