@@ -41,8 +41,10 @@ def predict(model, tokenizer, test_dataloader, output_csv, device):
                 batch["id"], batch["address"], poi_masks, street_masks
             ):
                 tokenized = tokenizer.tokenize(addr)
-                poi = reconstruct(addr, tokenized, poi_mask[:len(tokenized)])
-                street = reconstruct(addr, tokenized, street_mask[:len(tokenized)])
+                poi = reconstruct(addr, tokenized, poi_mask[1: len(tokenized) + 1])
+                street = reconstruct(addr, tokenized, street_mask[1: len(tokenized) + 1])
                 outputs.append([ID, f"{poi}/{street}"])
 
-    pd.DataFrame(outputs, columns=["id", "POI/street"]).to_csv(output_csv, index=False)
+    pd.DataFrame(outputs, columns=["id", "POI/street"]).sort_values(by="id").to_csv(
+        output_csv, index=False
+    )
