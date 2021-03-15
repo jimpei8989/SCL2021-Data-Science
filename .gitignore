@@ -7,6 +7,7 @@ __pycache__/
 /.vscode/
 .DS_Store
 *tmp*
+*.csv
 
 dataset/*.csv
 dataset/*.json
