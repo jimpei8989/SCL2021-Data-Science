@@ -1,9 +1,23 @@
 import pandas as pd
-import sys
+import argparse
 from tqdm import tqdm
 from collections import defaultdict
 
 def apply_mapping(s, mapping, mapping_2={}):
+    # Description:
+    #     apply mapping and mapping_2 on a string
+    #
+    # Input:
+    #     s (String): string to be mapped
+    #     mapping (Dictionary): 1 to 1 mapping
+    #     mapping_2 (Dictionary(Dictionary)): mapping consider previous word or next word
+    #     Example:
+    #         mapping_2['prev_b']['a'] = 'c' -> if the previous word of 'a' is 'b', map 'a' to 'c'
+    #         mapping_2['a']['b'] = 'c' -> if the next word of 'a' is 'b', map 'a' to 'c'
+    #
+    # Return:
+    #     new_s (String): result of mapping
+
     tmp_s = []
     for words in s.split(','):
         tmp_words = []
@@ -110,6 +124,18 @@ class Mapping_2(Mapping):
                     self.result_2[address_part][next_address_part] = target_part
         
 def calculate_mapping_score(address_s, target_s, mapping, mapping_2={}):
+    # Description:
+    #     calculate mapping score
+    #
+    # Input:
+    #     address_s (pandas.Serie): serie of strings to be mapped
+    #     target_s (pandas.Serie): serie of mapping result
+    #     mapping (Dictionary): 1 to 1 mapping
+    #     mapping_2 (Dictionary(Dictionary)): mapping consider previous word or next word
+    #     Example:
+    #         mapping_2['prev_b']['a'] = 'c' -> if the previous word of 'a' is 'b', map 'a' to 'c'
+    #         mapping_2['a']['b'] = 'c' -> if the next word of 'a' is 'b', map 'a' to 'c'
+
     total = len(address_s)
     count = 0
     count_without_comma = 0
@@ -126,6 +152,28 @@ def calculate_mapping_score(address_s, target_s, mapping, mapping_2={}):
     print(f'without comma and space = {count_without_comma_space} / {total} = {count_without_comma_space / total}')
 
 def find_mapping(address_s, target_s_list, return_dup=False, return_unique=False):
+    # Decription:
+    #     construct mapping with source and target
+    #
+    # Input:
+    #     address_s (pandas.Serie): serie of strings to be mapped
+    #     target_s_list (List(pandas.Serie)): list of series of mapping result
+    #     return_dup (Bool): return dup_mapping or not
+    #     return_unique (Bool): return unique_mapping or not
+    #   
+    # Return:
+    #     mapping (Dictionary(Description(int))): mapping result
+    #     Example: 
+    #         mapping['a']['b'] = 2 -> the count of 'a' mapped to 'b' is 2
+    #     dup_mapping (Dictionary(Description(int))): duplicate mapping
+    #     Example: 
+    #         dup_mapping['a']['b'] = 2 -> 'a' may mapped to string other than 'b' and the count of 'a' mapped to 'b' is 2
+    #     unique_mapping (Dictionary): processed mapping result
+    #     Example:
+    #         mapping['a']['b'] = 2 -> the count of 'a' mapped to 'b' is 2
+    #         mapping['a']['c'] = 3 -> the count of 'a' mapped to 'c' is 3
+    #         => unique_mapping['a'] = 'c' -> 'a' mapped to 'c'
+
     count = 0
     mapping = defaultdict(lambda: defaultdict(int))
     if not isinstance(target_s_list, list):
@@ -139,7 +187,7 @@ def find_mapping(address_s, target_s_list, return_dup=False, return_unique=False
             if not tmp_mapping.match_without_comma_space:
                 count += 1
     
-    print(f'invalid count / total count = {count} / {len(address_s) * len(target_s_list)} = {count / len(address_s) / len(target_s_list)}')
+    # print(f'invalid count / total count = {count} / {len(address_s) * len(target_s_list)} = {count / len(address_s) / len(target_s_list)}')
 
     if not return_dup and not return_unique:
         return mapping
@@ -163,8 +211,8 @@ def find_dup_mapping(mapping):
             dup_mapping[key] = value
         total_value += len(value)
     
-    print(f'duplicate key / total key = {dup_key} / {len(mapping)} = {dup_key / len(mapping)}')
-    print(f'duplicate value / total value = {dup_value} / {total_value} = {dup_value / total_value}')
+    # print(f'duplicate key / total key = {dup_key} / {len(mapping)} = {dup_key / len(mapping)}')
+    # print(f'duplicate value / total value = {dup_value} / {total_value} = {dup_value / total_value}')
 
     return dup_mapping
 
@@ -172,8 +220,33 @@ def find_unique_mapping(mapping):
     return {key:max(value, key=lambda k: value[k]) for key, value in mapping.items()}
 
 def find_mapping_2(address_s, target_s_list, dup_mapping=None, return_unique=False):
+    # Decription:
+    #     construct mapping consider previous or next word with source and target
+    #
+    # Input:
+    #     address_s (pandas.Serie): serie of strings to be mapped
+    #     target_s_list (List(pandas.Serie)): list of series of mapping result
+    #     dup_mapping (Dictionary(Description(int))): duplicate mapping
+    #     Example: 
+    #         dup_mapping['a']['b'] = 2 -> 'a' may mapped to string other than 'b' and the count of 'a' mapped to 'b' is 2
+    #     return_unique (Bool): return unique_mapping or not
+    #
+    # Return:
+    #     mapping (Dictionary(Description(int))): mapping result
+    #     Example: 
+    #         mapping['prev_b']['a']['c'] = 2 -> if previous word of 'a' is 'b', the count of 'a' mapped to 'c' is 2
+    #         mapping['a']['b']['c'] = 2 -> if next word of 'a' is 'b', the count of 'a' mapped to 'c' is 2
+    #     dup_mapping (Dictionary(Description(int))): duplicate mapping
+    #     Example: 
+    #         dup_mapping['a']['b']['c'] = 2
+    #         -> if next word of 'a' is 'b', 'a' may mapped to string other than 'c' and the count of 'a' mapped to 'c' is 2
+    #     unique_mapping (Dictionary): processed mapping result
+    #     Example:
+    #         mapping['a']['b']['c'] = 2 -> if next word of 'a' is 'b', the count of 'a' mapped to 'c' is 2
+    #         mapping['a']['b']['d'] = 1 -> if next word of 'a' is 'b', the count of 'a' mapped to 'd' is 1
+    #         => unique_mapping['a']['b'] = 'c' -> if next word of 'a' is 'b', 'a' mapped to 'c'
+
     count = 0
-    # mapping = defaultdict(dict)
     mapping = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     if not isinstance(target_s_list, list):
         target_s_list = [target_s_list]
@@ -186,28 +259,87 @@ def find_mapping_2(address_s, target_s_list, dup_mapping=None, return_unique=Fal
                     mapping[key][k][tmp_mapping.result_2[key][k]] += 1
             if not tmp_mapping.match_without_comma_space:
                 count += 1
-    print(f'invalid count / total count = {count} / {len(address_s) * len(target_s_list)} = {count / len(address_s) / len(target_s_list)}')
+                
+    # print(f'invalid count / total count = {count} / {len(address_s) * len(target_s_list)} = {count / len(address_s) / len(target_s_list)}')
 
     if not return_unique:
         return mapping
 
     return mapping, {key:{k:max(v, key=lambda x: v[x]) for k, v in value.items()} for key, value in mapping.items()} 
 
-if __name__ == '__main__':
-    df = pd.read_csv(sys.argv[1])
+def get_args():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', '-i', help='input csv')
+    parser.add_argument('--mapping', '-m', help='csv of mapping source')
+    parser.add_argument('--output', '-o', help='output csv')
+
+    return parser.parse_args()
+
+def split_POI_street(df):
+    # Description:
+    #     split column 'POI/street' to column 'POI' and column 'street'
+
+    # Input:
+    #     df (pandas.Dataframe): dataframe to column 'POI/street' to column 'POI' and column 'street'
+    
+    # Return:
+    #     df (pandas.Dataframe): splitted dataframe
+
     df[['POI','street']] = df['POI/street'].str.split('/',expand=True,)
     df.drop(columns='POI/street', inplace=True)
 
-    mapping_poi, dup_mapping_poi, unique_mapping_poi = find_mapping(df['raw_address'], df['POI'], return_dup=True, return_unique=True)
-    mapping_street, dup_mapping_street, unique_mapping_street = find_mapping(df['raw_address'], df['street'], return_dup=True, return_unique=True)
-    # mapping, dup_mapping, unique_mapping = find_mapping(df['raw_address'], [df['POI'], df['street']], return_dup=True, return_unique=True)
+    return df
 
-    calculate_mapping_score(df['raw_address'], df['POI'], unique_mapping_poi)
-    # calculate_mapping_score(df['raw_address'], df['POI'], unique_mapping)
-    calculate_mapping_score(df['raw_address'], df['street'], unique_mapping_street)
-    # calculate_mapping_score(df['raw_address'], df['street'], unique_mapping)
+def mapping_data(data_df, mapping_df):
+    # Description:
+    #     Construct mapping and mapping_2 from mapping_df and map data_df with them
 
-    mapping_2_poi, unique_mapping_2_poi = find_mapping_2(df['raw_address'], df['POI'], dup_mapping_poi, return_unique=True)
-    mapping_2_street, unique_mapping_2_street = find_mapping_2(df['raw_address'], df['street'], dup_mapping_street, return_unique=True)
-    calculate_mapping_score(df['raw_address'], df['POI'], unique_mapping_poi, unique_mapping_2_poi)
-    calculate_mapping_score(df['raw_address'], df['street'], unique_mapping_street, unique_mapping_2_street)
+    # Input:
+    #     data_df (pandas.Dataframe): dataframe to be mapped
+    #     mapping_df (pandas.Dataframe): source of dataframe to construct mapping and mapping_2
+
+    # Return:
+    #     data_df (pandas.Dataframe): mapped dataframe
+
+    if 'raw_address' in data_df:
+        mapping, dup_mapping, unique_mapping = find_mapping(mapping_df['raw_address'], [mapping_df['POI'], mapping_df['street']], return_dup=True, return_unique=True)
+        mapping_2, unique_mapping_2 = find_mapping_2(mapping_df['raw_address'], [mapping_df['POI'], mapping_df['street']], dup_mapping, return_unique=True)
+
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping, unique_mapping_2)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping, unique_mapping_2)
+
+        data['raw_address'] = data['raw_address'].apply(apply_mapping, args=(unique_mapping, unique_mapping_2))
+
+    else:
+        mapping_poi, dup_mapping_poi, unique_mapping_poi = find_mapping(mapping_df['raw_address'], mapping_df['POI'], return_dup=True, return_unique=True)
+        mapping_street, dup_mapping_street, unique_mapping_street = find_mapping(mapping_df['raw_address'], mapping_df['street'], return_dup=True, return_unique=True)
+        mapping_2_poi, unique_mapping_2_poi = find_mapping_2(mapping_df['raw_address'], mapping_df['POI'], dup_mapping_poi, return_unique=True)
+        mapping_2_street, unique_mapping_2_street = find_mapping_2(mapping_df['raw_address'], mapping_df['street'], dup_mapping_street, return_unique=True)
+
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping_poi)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping_street)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['POI'], unique_mapping_poi, unique_mapping_2_poi)
+        # calculate_mapping_score(mapping_df['raw_address'], mapping_df['street'], unique_mapping_street, unique_mapping_2_street)
+
+        data_df = split_POI_street(data_df)
+        data_df['POI'] = data_df['POI'].apply(apply_mapping, args=(unique_mapping_poi, unique_mapping_2_poi))
+        data_df['street'] = data_df['street'].apply(apply_mapping, args=(unique_mapping_street, unique_mapping_2_street))
+        data_df['POI/street'] = data_df['POI'] + '/' + data_df['street']
+        data_df.drop(columns=['POI', 'street'], inplace=True)
+
+    return data_df
+
+if __name__ == '__main__':
+    args = get_args()
+
+    mapping_df = pd.read_csv(args.mapping)
+    mapping_df = split_POI_street(mapping_df)
+
+    input_df = pd.read_csv(args.input)
+    input_df = mapping_data(input_df, mapping_df)
+    input_df.to_csv(args.output, index=False)
+
+    
