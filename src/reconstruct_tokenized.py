@@ -39,7 +39,7 @@ def reconstruct(source: str, tokenized: List[str], mask=None):
             for j in range(begining_indices[i], ending_indices[i]):
                 char_mask[j] = True
 
-    return "".join(c for c, m in zip(source, char_mask) if m)
+    return "".join(c for c, m in zip(source, char_mask) if m).strip()
 
 
 def test():
