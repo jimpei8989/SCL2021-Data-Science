@@ -302,6 +302,9 @@ def mapping_data(data_df, mapping_df):
     # Return:
     #     data_df (pandas.Dataframe): mapped dataframe
 
+    if 'POI' not in mapping_df or 'street' not in mapping_df:
+        mapping_df = split_POI_street(mapping_df)
+
     if 'raw_address' in data_df:
         mapping, dup_mapping, unique_mapping = find_mapping(mapping_df['raw_address'], [mapping_df['POI'], mapping_df['street']], return_dup=True, return_unique=True)
         mapping_2, unique_mapping_2 = find_mapping_2(mapping_df['raw_address'], [mapping_df['POI'], mapping_df['street']], dup_mapping, return_unique=True)
@@ -336,7 +339,6 @@ if __name__ == '__main__':
     args = get_args()
 
     mapping_df = pd.read_csv(args.mapping)
-    mapping_df = split_POI_street(mapping_df)
 
     input_df = pd.read_csv(args.input)
     input_df = mapping_data(input_df, mapping_df)
