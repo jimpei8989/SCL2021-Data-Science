@@ -1,14 +1,18 @@
+import os
 import torch
 from torch.optim import Adam
 import torch.nn as nn
 
+from predict import predict
 
-def evaluate(model, loader, device):
-    model.eval()
-    with torch.no_grad():
-        for i, batch in enumerate(loader):
-            print(batch)
-            exit()
+
+def evaluate(model, tokenizer, checkpoint_dir, train_loader=None, val_loader=None, device=None):
+    for loader, data_type in zip([train_loader, val_loader], ['train', 'val']):
+        if loader is not None:
+            opt_path = checkpoint_dir / f'{data_type}_opt.csv'
+            predict(model, tokenizer, loader, output_csv=opt_path, device=device)
+            print(f"========== Result of {data_type} set ==========")
+            os.system(f"python src/score.py -i dataset/train.csv -m dataset/train.csv  -o {opt_path}")
 
 
 def train(

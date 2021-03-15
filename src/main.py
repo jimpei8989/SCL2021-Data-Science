@@ -74,19 +74,23 @@ def main(args):
 
     if args.do_evaluate:
         model = HamsBert.from_checkpoint(args.checkpoint_dir)
+        tokenizer = BertTokenizer.from_pretrained(args.bert_name)
+
         train_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
                 args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+                train=False,
             )
         )
 
         val_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
                 args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
+                train=False,
             )
         )
 
-        evaluate(model, train_loader, device=args.device)
+        evaluate(model, tokenizer, args.checkpoint_dir, train_loader=train_loader, val_loader=val_loader, device=args.device)
 
     if args.do_predict:
         model = HamsBert.from_checkpoint(args.checkpoint_dir)
