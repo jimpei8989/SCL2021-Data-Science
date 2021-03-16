@@ -21,14 +21,14 @@ class HamsBert(nn.Module):
         return cls(bert)
 
     @classmethod
-    def from_pretrained(cls, checkpoint_path):
+    def from_checkpoint(cls, checkpoint_path):
         model = cls()
         model.load_state_dict(torch.load(checkpoint_path))
         return model
 
     def __init__(self, backbone=None):
         super().__init__()
-        self.backbone = backbone or BertModel()
+        self.backbone = backbone or BertModel.from_pretrained("cahya/bert-base-indonesian-522M")
         self.fc = nn.Sequential(nn.Linear(768, 2), nn.Sigmoid())
 
     def forward(self, x):

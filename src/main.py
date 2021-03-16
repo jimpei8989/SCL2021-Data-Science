@@ -76,7 +76,7 @@ def main(args):
             )
         )
 
-        if (args.checkpoint_dir / "pretrained_bert.pt").isfile():
+        if (args.checkpoint_dir / "pretrained_bert.pt").is_file():
             model = HamsBert.from_pretrained_bert(
                 checkpoint_path=args.checkpoint_dir / "pretrained_bert.pt"
             )
