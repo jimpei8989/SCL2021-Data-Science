@@ -4,24 +4,31 @@ from torch.optim import Adam
 import torch.nn as nn
 
 from predict import predict
+from utils.timer import timer
 
 
 def evaluate(model, tokenizer, checkpoint_dir, train_loader=None, val_loader=None, device=None):
-    for loader, data_type in zip([train_loader, val_loader], ['train', 'val']):
+    for loader, data_type in zip([train_loader, val_loader], ["train", "val"]):
         if loader is not None:
             # predict and output
-            opt_path = checkpoint_dir / f'{data_type}_opt.csv'
+            opt_path = checkpoint_dir / f"{data_type}_opt.csv"
             predict(model, tokenizer, loader, output_csv=opt_path, device=device)
 
             # mapping
-            opt_map_path = checkpoint_dir / f'{data_type}_map_opt.csv'
-            os.system(f"python src/mapping.py -i {opt_path} -m dataset/train.csv -o {opt_map_path}")
+            opt_map_path = checkpoint_dir / f"{data_type}_map_opt.csv"
+            os.system(
+                f"python src/mapping.py -i {opt_path} -m dataset/train.csv -o {opt_map_path}"
+            )
 
             print(f"========== Result of {data_type} set ==========")
             print("----------    Without mapping    ----------")
-            os.system(f"python src/score.py -i dataset/train.csv -m dataset/train.csv -o {opt_path}")
+            os.system(
+                f"python src/score.py -i dataset/train.csv -m dataset/train.csv -o {opt_path}"
+            )
             print("----------     After mapping    ----------")
-            os.system(f"python src/score.py -i dataset/train.csv -m dataset/train.csv -o {opt_map_path}")
+            os.system(
+                f"python src/score.py -i dataset/train.csv -m dataset/train.csv -o {opt_map_path}"
+            )
 
 
 def train(
@@ -55,6 +62,7 @@ def train(
 
     model.to(device)
 
+    @timer
     def iterate_dataloader(dataloader, train=False):
         model.train() if train else model.eval()
 
@@ -102,18 +110,21 @@ def train(
 
     min_val_loss, not_improved = 100000, 0
     for e in range(epochs):
-        train_loss, train_token_acc, train_sentence_acc = iterate_dataloader(
+        print(f"Epoch {e+1}/{epochs}")
+        train_time, (train_loss, train_token_acc, train_sentence_acc) = iterate_dataloader(
             train_loader, train=True
         )
         print(
-            f"Epoch {e+1}/{epochs}: [Train] loss = {train_loss:.4f}, "
+            f"| [Train] time: {train_time:7.3f} - ",
+            f"loss = {train_loss:.4f}, "
             f"acc_per_token = {train_token_acc:.4f}, "
             f"acc_per_sentence = {train_sentence_acc:.4f}"
         )
 
-        val_loss, val_token_acc, val_sentence_acc = iterate_dataloader(val_loader)
+        val_time, (val_loss, val_token_acc, val_sentence_acc) = iterate_dataloader(val_loader)
         print(
-            f"[Val] loss = {val_loss:.4f}, "
+            f"\ [Val]   time: {val_time:7.3f}s - "
+            f"loss = {val_loss:.4f}, "
             f"acc_per_token = {val_token_acc:.4f}, "
             f"acc_per_sentence = {val_sentence_acc:.4f}"
         )
