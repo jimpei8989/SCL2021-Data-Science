@@ -1,21 +1,35 @@
-from transformers import BertTokenizer, BertModel
-from torch import nn
+from pathlib import Path
+from typing import Optional
+
 import torch
+from torch import nn
+from transformers import BertTokenizer, BertModel
 
 from tokenizer_utils import tokenize_addr
 
 
 class HamsBert(nn.Module):
-    def __init__(self, backbone):
-        super().__init__()
-        self.backbone = backbone
-        self.fc = nn.Sequential(nn.Linear(768, 2), nn.Sigmoid())
+    @classmethod
+    def from_pretrained_bert(
+        cls, bert_name: Optional[str] = None, checkpoint_path: Optional[Path] = None
+    ):
+        if bert_name:
+            bert = BertModel.from_pretrained(bert_name)
+        else:
+            bert = BertModel()
+            bert.load_state_dict(torch.load(checkpoint_path))
+        return cls(bert)
 
-    def from_checkpoint(path):
-        model = HamsBert(backbone=BertModel.from_pretrained('cahya/bert-base-indonesian-522M'))
-        model.load_state_dict(torch.load(path / "model_best.pt"))
-
+    @classmethod
+    def from_pretrained(cls, checkpoint_path):
+        model = cls()
+        model.load_state_dict(torch.load(checkpoint_path))
         return model
+
+    def __init__(self, backbone=None):
+        super().__init__()
+        self.backbone = backbone or BertModel()
+        self.fc = nn.Sequential(nn.Linear(768, 2), nn.Sigmoid())
 
     def forward(self, x):
         """
