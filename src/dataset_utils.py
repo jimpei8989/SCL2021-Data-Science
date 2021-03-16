@@ -76,9 +76,19 @@ def align_tokenized(address: List[str], target: List[str]) -> Tuple[int, int]:
 
 
 def create_batch(samples):
-    return {
+    ret = {
         k: [s[k] for s in samples]
         if not isinstance(samples[0][k], torch.Tensor)
         else pad_sequence([s[k] for s in samples], batch_first=True)
         for k in samples[0]
     }
+
+    # Add mask for training
+    if "scores_poi" in ret:
+        ret |= {
+            "mask": pad_sequence(
+                [torch.ones(s["scores_poi"].shape[0]) for s in samples], batch_first=True
+            )
+        }
+
+    return ret

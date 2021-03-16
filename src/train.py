@@ -66,6 +66,9 @@ def train(
 
                 pred = model(batch["input_ids"].to(device))
 
+                # Apply mask
+                pred = pred * batch["mask"].to(device).unsqueeze(-1)
+
                 y = torch.stack([batch["scores_poi"], batch["scores_street"]], dim=-1).to(device)
                 loss = criterion(pred, y.to(device))
 
