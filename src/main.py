@@ -77,9 +77,11 @@ def main(args):
         )
 
         if (args.checkpoint_dir / "pretrained_bert.pt").isfile():
-            model = HamsBert.from_pretrained_bert(args.checkpoint_dir / "pretrained_bert.pt")
+            model = HamsBert.from_pretrained_bert(
+                checkpoint_path=args.checkpoint_dir / "pretrained_bert.pt"
+            )
         else:
-            model = HamsBert.from_pretrained_bert(args.bert_name)
+            model = HamsBert.from_pretrained_bert(bert_name=args.bert_name)
 
         if not args.checkpoint_dir.is_dir():
             args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -98,7 +100,7 @@ def main(args):
         )
 
     if args.do_evaluate:
-        model = HamsBert.from_checkpoint(args.checkpoint_dir / "model_best.pt")
+        model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "model_best.pt")
         tokenizer = BertTokenizer.from_pretrained(args.bert_name)
 
         train_loader = to_dataloader(
@@ -125,7 +127,7 @@ def main(args):
         )
 
     if args.do_predict:
-        model = HamsBert.from_checkpoint(args.checkpoint_dir / "model_best.pt")
+        model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "model_best.pt")
         tokenizer = BertTokenizer.from_pretrained(args.bert_name)
 
         test_loader = to_dataloader(
