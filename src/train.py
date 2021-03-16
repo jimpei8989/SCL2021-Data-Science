@@ -115,7 +115,7 @@ def train(
             train_loader, train=True
         )
         print(
-            f"| [Train] time: {train_time:7.3f} - ",
+            f"| [Train] time: {train_time:7.3f}s - ",
             f"loss = {train_loss:.4f}, "
             f"acc_per_token = {train_token_acc:.4f}, "
             f"acc_per_sentence = {train_sentence_acc:.4f}"
