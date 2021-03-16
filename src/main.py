@@ -13,6 +13,7 @@ from dataset_utils import create_batch
 from model import HamsBert
 
 from preprocess_dataset import preprocess_dataset
+from further_pretraining import further_pretrain
 from train import train, evaluate
 from predict import predict
 
@@ -39,6 +40,24 @@ def main(args):
     if args.do_preprocess:
         print("> Preprocessing dataset")
         preprocess_dataset(args)
+
+    if args.do_pretrain:
+        bert = BertModel.from_pretrained(args.bert_name)
+
+        train_loader = to_dataloader(
+            IndonesiaAddressDataset.from_json(
+                args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+            ),
+            shuffle=True,
+        )
+
+        val_loader = to_dataloader(
+            IndonesiaAddressDataset.from_json(
+                args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
+            ),
+            shuffle=True,
+        )
+        further_pretrain(bert, [train_loader, val_loader])
 
     if args.do_train:
         train_loader = to_dataloader(
@@ -90,7 +109,14 @@ def main(args):
             )
         )
 
-        evaluate(model, tokenizer, args.checkpoint_dir, train_loader=train_loader, val_loader=val_loader, device=args.device)
+        evaluate(
+            model,
+            tokenizer,
+            args.checkpoint_dir,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            device=args.device,
+        )
 
     if args.do_predict:
         model = HamsBert.from_checkpoint(args.checkpoint_dir)
@@ -98,8 +124,7 @@ def main(args):
 
         test_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json",
-                train=False
+                args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json", train=False
             )
         )
         predict(model, tokenizer, test_loader, output_csv=args.output_csv, device=args.device)
@@ -127,6 +152,7 @@ def parse_args():
 
     # Actions
     parser.add_argument("--do_preprocess", action="store_true")
+    parser.add_argument("--do_pretrain", action="store_true")
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_predict", action="store_true")
     parser.add_argument("--do_evaluate", action="store_true")
@@ -136,7 +162,7 @@ def parse_args():
         "--seed", type=int, default=0x06902024 ^ 0x06902029 ^ 0x06902066 ^ 0x06902074
     )
     parser.add_argument("--cpu", action="store_true")
-    parser.add_argument("--gpu", default='0')
+    parser.add_argument("--gpu", default="0")
 
     args = parser.parse_args()
 
