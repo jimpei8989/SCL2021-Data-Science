@@ -5,26 +5,6 @@ from tqdm import tqdm
 from reconstruct_tokenized import reconstruct
 
 
-def ids_to_str(tokenizer, ids, must_continue=False):
-    ret = ""
-    for c in ids:
-        if c != 0:
-            token = tokenizer.convert_ids_to_tokens(int(c.item()))
-            if token[0] not in [".", ","]:
-                ret += " "
-            ret = ret + token[2:] if token[:2] == "##" else ret + token
-
-    return ret.strip()
-
-
-def get_res(tokenizer, poi, street, must_continue=False):
-    ret = [
-        f"{ids_to_str(tokenizer, p, must_continue)}/{ids_to_str(tokenizer, s, must_continue)}"
-        for (p, s) in zip(poi, street)
-    ]
-    return ret
-
-
 def predict(model, tokenizer, test_dataloader, output_csv, device):
     model.to(device)
     model.eval()
