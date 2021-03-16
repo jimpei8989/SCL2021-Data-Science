@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from torch.utils.data.dataset import ConcatDataset
 from transformers import BertForMaskedLM, BertTokenizer
 
 from dataset import IndonesiaAddressDataset
@@ -45,20 +46,20 @@ def main(args):
         pretrain_bert = BertForMaskedLM.from_pretrained(args.bert_name)
         tokenizer = BertTokenizer.from_pretrained(args.bert_name)
 
-        train_loader = to_dataloader(
-            IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
-                for_pretraining=True,
+        dataloader = DataLoader(
+            ConcatDataset(
+                [
+                    IndonesiaAddressDataset.from_json(
+                        args.dataset_dir / f"{split}_{args.bert_name.replace('/', '-')}.json",
+                        for_pretraining=True,
+                    )
+                    for split in ["train", "val", "test"]
+                ]
             ),
             shuffle=True,
-        )
-
-        val_loader = to_dataloader(
-            IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
-                for_pretraining=True,
-            ),
-            shuffle=True,
+            batch_size=args.mlm_batch_size,
+            num_workers=args.num_workers,
+            collate_fn=create_batch,
         )
 
         if not args.checkpoint_dir.is_dir():
@@ -66,8 +67,10 @@ def main(args):
 
         further_pretrain(
             pretrain_bert,
-            [train_loader, val_loader],
-            epochs=3,
+            dataloader,
+            epochs=args.mlm_epochs,
+            lr=args.mlm_learning_rate,
+            weight_decay=args.mlm_weight_decay,
             model_path=args.checkpoint_dir / "pretrained_bert.pt",
             device=args.device,
         )
@@ -153,6 +156,12 @@ def parse_args():
 
     # Configs
     parser.add_argument("--bert_name", default="cahya/bert-base-indonesian-522M")
+
+    # MLM Pretraining
+    parser.add_argument("--mlm_epochs", type=int, default=1)
+    parser.add_argument("--mlm_learning_rate", type=float, default=1e-3)
+    parser.add_argument("--mlm_weight_decay", type=float, default=0)
+    parser.add_argument("--mlm_batch_size", type=int, default=1)
 
     # Trainers
     parser.add_argument("--epochs", type=int, default=1)

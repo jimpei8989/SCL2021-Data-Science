@@ -1,4 +1,3 @@
-from itertools import chain
 from pathlib import Path
 from typing import Iterable, Optional
 
@@ -29,7 +28,7 @@ def mask_tokens(inputs, mask=None, mask_id=4, mlm_probability=0.15):
 
 def further_pretrain(
     bert,
-    dataloaders: Iterable,
+    dataloader: Iterable,
     lr: float = 1e-3,
     weight_decay: float = 0,
     epochs: int = 1,
@@ -41,13 +40,11 @@ def further_pretrain(
 
     optimizer = Adam(bert.parameters(), lr=lr, weight_decay=weight_decay)
 
-    total_length = sum(map(len, dataloaders))
-
     for epoch in range(1, epochs + 1):
         with Timer(verbose=False) as et:
             print(f"Pretraining epoch {epoch}/{epochs}")
             epoch_losses = []
-            for i, batch in enumerate(chain.from_iterable(dataloaders)):
+            for i, batch in enumerate(dataloader):
                 optimizer.zero_grad()
 
                 input_ids, labels = mask_tokens(batch["input_ids"], mask=batch["mask"])
@@ -59,9 +56,9 @@ def further_pretrain(
                 optimizer.step()
 
                 epoch_losses.append(loss.item())
-                print(f"Batch {i}/{total_length} - loss = {loss.item():.4f}", end="\r")
+                print(f"Batch {i}/{len(dataloader)} - loss = {loss.item():.4f}", end="\r")
 
-            print(f"\ [Train] time: {et.get_time():7.3f}s - loss = {np.mean(epoch_losses):.4f}")
+            print(f"\\ [Train] time: {et.get_time():7.3f}s - loss = {np.mean(epoch_losses):.4f}")
 
     # save model to checkpoint_dir, save it as "pretrained_bert.pt"
     torch.save(bert.state_dict(), model_path)
