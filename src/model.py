@@ -16,8 +16,7 @@ class HamsBert(nn.Module):
         if bert_name:
             bert = BertModel.from_pretrained(bert_name)
         else:
-            bert = BertModel()
-            bert.load_state_dict(torch.load(checkpoint_path))
+            bert = BertModel.from_pretrained(checkpoint_path)
         return cls(bert)
 
     @classmethod

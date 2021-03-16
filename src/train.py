@@ -123,7 +123,7 @@ def train(
 
         val_time, (val_loss, val_token_acc, val_sentence_acc) = iterate_dataloader(val_loader)
         print(
-            f"\ [Val]   time: {val_time:7.3f}s - "
+            f"\\ [Val]   time: {val_time:7.3f}s - "
             f"loss = {val_loss:.4f}, "
             f"acc_per_token = {val_token_acc:.4f}, "
             f"acc_per_sentence = {val_sentence_acc:.4f}"

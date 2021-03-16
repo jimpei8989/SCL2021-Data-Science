@@ -32,7 +32,7 @@ def further_pretrain(
     lr: float = 1e-3,
     weight_decay: float = 0,
     epochs: int = 1,
-    model_path: Optional[Path] = None,
+    bert_save_dir: Optional[Path] = None,
     device=None,
 ):
     bert.train()
@@ -61,4 +61,4 @@ def further_pretrain(
             print(f"\\ [Train] time: {et.get_time():7.3f}s - loss = {np.mean(epoch_losses):.4f}")
 
     # save model to checkpoint_dir, save it as "pretrained_bert.pt"
-    torch.save(bert.state_dict(), model_path)
+    bert.bert.save_pretrained(bert_save_dir)

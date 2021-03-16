@@ -71,7 +71,7 @@ def main(args):
             epochs=args.mlm_epochs,
             lr=args.mlm_learning_rate,
             weight_decay=args.mlm_weight_decay,
-            model_path=args.checkpoint_dir / "pretrained_bert.pt",
+            bert_save_dir=args.checkpoint_dir / "further_pretrained",
             device=args.device,
         )
 
@@ -89,9 +89,9 @@ def main(args):
             )
         )
 
-        if (args.checkpoint_dir / "pretrained_bert.pt").is_file():
+        if (args.checkpoint_dir / "further_pretrained").is_dir():
             model = HamsBert.from_pretrained_bert(
-                checkpoint_path=args.checkpoint_dir / "pretrained_bert.pt"
+                checkpoint_path=args.checkpoint_dir / "further_pretrained"
             )
         else:
             model = HamsBert.from_pretrained_bert(bert_name=args.bert_name)
