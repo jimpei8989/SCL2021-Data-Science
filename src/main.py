@@ -90,6 +90,7 @@ def main(args):
         )
 
         if (args.checkpoint_dir / "further_pretrained").is_dir():
+            print('Using further pretrained weights')
             model = HamsBert.from_pretrained_bert(
                 checkpoint_path=args.checkpoint_dir / "further_pretrained"
             )
