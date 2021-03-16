@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from transformers import BertModel, BertTokenizer
+from transformers import BertForMaskedLM, BertTokenizer
 
 from dataset import IndonesiaAddressDataset
 from dataset_utils import create_batch
@@ -42,11 +42,13 @@ def main(args):
         preprocess_dataset(args)
 
     if args.do_pretrain:
-        bert = BertModel.from_pretrained(args.bert_name)
+        pretrain_bert = BertForMaskedLM.from_pretrained(args.bert_name)
+        tokenizer = BertTokenizer.from_pretrained(args.bert_name)
 
         train_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
                 args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+                for_pretraining=True,
             ),
             shuffle=True,
         )
@@ -54,13 +56,21 @@ def main(args):
         val_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
                 args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
+                for_pretraining=True,
             ),
             shuffle=True,
         )
 
         if not args.checkpoint_dir.is_dir():
             args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        further_pretrain(bert, [train_loader, val_loader])
+
+        further_pretrain(
+            pretrain_bert,
+            [train_loader, val_loader],
+            epochs=3,
+            model_path=args.checkpoint_dir / "pretrained_bert.pt",
+            device=args.device,
+        )
 
     if args.do_train:
         train_loader = to_dataloader(
