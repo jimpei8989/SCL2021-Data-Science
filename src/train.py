@@ -17,17 +17,17 @@ def evaluate(model, tokenizer, checkpoint_dir, train_loader=None, val_loader=Non
             # mapping
             opt_map_path = checkpoint_dir / f"{data_type}_map_opt.csv"
             os.system(
-                f"python src/mapping.py -i {opt_path} -m dataset/train.csv -o {opt_map_path}"
+                f"python src/mapping.py -i {opt_path} -m dataset/train_split.csv -o {opt_map_path}"
             )
 
             print(f"========== Result of {data_type} set ==========")
             print("----------    Without mapping    ----------")
             os.system(
-                f"python src/score.py -i dataset/train.csv -m dataset/train.csv -o {opt_path}"
+                f"python src/score.py -i dataset/train.csv -m dataset/train_split.csv -o {opt_path}"
             )
             print("----------     After mapping    ----------")
             os.system(
-                f"python src/score.py -i dataset/train.csv -m dataset/train.csv -o {opt_map_path}"
+                f"python src/score.py -i dataset/train.csv -m dataset/train_split.csv -o {opt_map_path}"
             )
 
 
