@@ -60,5 +60,5 @@ def further_pretrain(
 
             print(f"\\ [Train] time: {et.get_time():7.3f}s - loss = {np.mean(epoch_losses):.4f}")
 
-    # save model to checkpoint_dir, save it as "pretrained_bert.pt"
-    bert.bert.save_pretrained(bert_save_dir)
+        # save model to checkpoint_dir, save it as "pretrained_bert.pt"
+        bert.bert.save_pretrained(bert_save_dir)
