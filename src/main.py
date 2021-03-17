@@ -89,10 +89,10 @@ def main(args):
             )
         )
 
-        if (args.checkpoint_dir / "further_pretrained").is_dir():
+        if (args.pretrain_dir / "further_pretrained").is_dir():
             print('Using further pretrained weights')
             model = HamsBert.from_pretrained_bert(
-                checkpoint_path=args.checkpoint_dir / "further_pretrained"
+                checkpoint_path=args.pretrain_dir / "further_pretrained"
             )
         else:
             model = HamsBert.from_pretrained_bert(bert_name=args.bert_name)
@@ -176,6 +176,7 @@ def parse_args():
     # Filesystem
     parser.add_argument("--dataset_dir", type=Path, default="dataset/")
     parser.add_argument("--checkpoint_dir", type=Path, default="checkpoints/default/")
+    parser.add_argument("--pretrain_dir", type=Path, default="checkpoints")
     parser.add_argument("--output_csv", type=Path, default="output.csv")
 
     # Actions
