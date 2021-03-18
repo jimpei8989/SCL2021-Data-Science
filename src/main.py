@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import ConcatDataset
@@ -17,6 +18,7 @@ from preprocess_dataset import preprocess_dataset
 from further_pretraining import further_pretrain
 from train import train, evaluate
 from predict import predict
+from mapping import mapping_data
 
 
 def set_seed(seed):
@@ -37,6 +39,14 @@ def main(args):
             collate_fn=create_batch,
             **kwargs,
         )
+
+    if args.do_premap:
+        print(f"> Mapping dataset")
+        mapping_df = pd.read_csv(args.dataset_dir / 'train.csv')
+        for mode in ['train', 'test']:
+            df = pd.read_csv(args.dataset_dir / f'{mode}.csv')
+            df = mapping_data(df, mapping_df)
+            df.to_csv(args.dataset_dir / f"{args.file_prefix}{mode}.csv", index=False)
 
     if args.do_preprocess:
         print("> Preprocessing dataset")
@@ -205,6 +215,7 @@ def parse_args():
     parser.add_argument("--output_csv", type=Path, default="output.csv")
 
     # Actions
+    parser.add_argument("--do_premap", action="store_true")
     parser.add_argument("--do_preprocess", action="store_true")
     parser.add_argument("--do_pretrain", action="store_true")
     parser.add_argument("--do_train", action="store_true")
