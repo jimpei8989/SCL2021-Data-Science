@@ -40,6 +40,7 @@ def further_pretrain(
 
     optimizer = Adam(bert.parameters(), lr=lr, weight_decay=weight_decay)
 
+    min_loss = 10000
     for epoch in range(1, epochs + 1):
         with Timer(verbose=False) as et:
             print(f"Pretraining epoch {epoch}/{epochs}")
@@ -61,4 +62,7 @@ def further_pretrain(
             print(f"\\ [Train] time: {et.get_time():7.3f}s - loss = {np.mean(epoch_losses):.4f}")
 
         # save model to checkpoint_dir, save it as "pretrained_bert.pt"
-        bert.bert.save_pretrained(bert_save_dir)
+        if np.mean(epoch_losses) < min_loss:
+            print(f'Improve from {min_loss}, Save checkpoint to {bert_save_dir}')
+            min_loss = np.mean(epoch_losses)
+            bert.bert.save_pretrained(bert_save_dir)
