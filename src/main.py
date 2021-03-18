@@ -50,7 +50,8 @@ def main(args):
             ConcatDataset(
                 [
                     IndonesiaAddressDataset.from_json(
-                        args.dataset_dir / f"{split}_{args.bert_name.replace('/', '-')}.json",
+                        args.dataset_dir
+                        / f"{args.file_prefix}{split}_{args.bert_name.replace('/', '-')}.json",
                         for_pretraining=True,
                     )
                     for split in ["train", "val", "test"]
@@ -72,25 +73,28 @@ def main(args):
             lr=args.mlm_learning_rate,
             weight_decay=args.mlm_weight_decay,
             bert_save_dir=args.checkpoint_dir / "further_pretrained",
+            bert_checkpoint_dir=args.checkpoint_dir / "bert_checkpoints",
             device=args.device,
         )
 
     if args.do_train:
         train_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+                args.dataset_dir
+                / f"{args.file_prefix}train_{args.bert_name.replace('/', '-')}.json",
             ),
             shuffle=True,
         )
 
         val_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
+                args.dataset_dir
+                / f"{args.file_prefix}val_{args.bert_name.replace('/', '-')}.json",
             )
         )
 
         if (args.pretrain_dir / "further_pretrained").is_dir():
-            print('Using further pretrained weights')
+            print("Using further pretrained weights")
             model = HamsBert.from_pretrained_bert(
                 checkpoint_path=args.pretrain_dir / "further_pretrained"
             )
@@ -102,16 +106,17 @@ def main(args):
 
         if args.warm_up:
             print("Warm up ...")
-            train(model,
-                  train_loader,
-                  val_loader,
-                  lr=0.001,
-                  epochs=7,
-                  early_stopping=2,
-                  freeze_backbone=True,
-                  model_path=args.checkpoint_dir / "warmup.pt",
-                  device=args.device,
-                  )
+            train(
+                model,
+                train_loader,
+                val_loader,
+                lr=0.001,
+                epochs=7,
+                early_stopping=2,
+                freeze_backbone=True,
+                model_path=args.checkpoint_dir / "warmup.pt",
+                device=args.device,
+            )
             model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "warmup.pt")
             print("Finishing warming up ...")
 
@@ -134,14 +139,16 @@ def main(args):
 
         train_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json",
+                args.dataset_dir
+                / f"{args.file_prefix}train_{args.bert_name.replace('/', '-')}.json",
                 train=False,
             )
         )
 
         val_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json",
+                args.dataset_dir
+                / f"{args.file_prefix}val_{args.bert_name.replace('/', '-')}.json",
                 train=False,
             )
         )
@@ -161,7 +168,9 @@ def main(args):
 
         test_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
-                args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json", train=False
+                args.dataset_dir
+                / f"{args.file_prefix}test_{args.bert_name.replace('/', '-')}.json",
+                train=False,
             )
         )
         predict(model, tokenizer, test_loader, output_csv=args.output_csv, device=args.device)
@@ -209,11 +218,16 @@ def parse_args():
     parser.add_argument("--cpu", action="store_true")
     parser.add_argument("--gpu", default="0")
 
+    parser.add_argument("--use_premapped", action="store_true")
+
     args = parser.parse_args()
 
     args.device = torch.device("cpu" if args.cpu else "cuda")
     if not args.cpu:
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+
+    args.file_prefix = "premapped_" if args.use_premapped else ""
+
     return args
 
 

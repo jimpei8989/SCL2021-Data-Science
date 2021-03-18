@@ -33,6 +33,7 @@ def further_pretrain(
     weight_decay: float = 0,
     epochs: int = 1,
     bert_save_dir: Optional[Path] = None,
+    checkpoint_dir: Optional[Path] = None,
     device=None,
 ):
     bert.train()
@@ -63,6 +64,9 @@ def further_pretrain(
 
         # save model to checkpoint_dir, save it as "pretrained_bert.pt"
         if np.mean(epoch_losses) < min_loss:
-            print(f'Improve from {min_loss}, Save checkpoint to {bert_save_dir}')
+            print(f"Improve from {min_loss}, Save checkpoint to {bert_save_dir}")
             min_loss = np.mean(epoch_losses)
             bert.bert.save_pretrained(bert_save_dir)
+
+        if epoch % 5 == 0:
+            bert.bert.save_pretrained(checkpoint_dir / f"epoch_{epoch:02d}")

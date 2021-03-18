@@ -46,7 +46,7 @@ def preprocess_dataset(args):
     tokenizer = BertTokenizer.from_pretrained(args.bert_name)
 
     # Handle training data
-    train_df = pd.read_csv(args.dataset_dir / "train.csv")
+    train_df = pd.read_csv(args.dataset_dir / f"{args.file_prefix}train.csv")
 
     data = [
         {
@@ -55,55 +55,70 @@ def preprocess_dataset(args):
             "poi": row["POI/street"].split("/")[0],
             "street": row["POI/street"].split("/")[1],
         }
-        for index, row in tqdm(
+        for _, row in tqdm(
             train_df.iterrows(), desc="Iterating train csv", total=len(train_df), ncols=80
         )
     ]
 
-    with open(args.dataset_dir / "train.json", "w") as f:
+    dump_json = args.dataset_dir / f"{args.file_prefix}train.json"
+    with open(dump_json, "w") as f:
         json.dump(data, f, indent=2)
-        print(f"> Raw Dataset saved to {args.dataset_dir / 'train.json'}")
+        print(f"> Raw Dataset saved to {dump_json}")
 
     tokenized_data = [
         prepare(d, tokenizer) for d in tqdm(data, desc="Preparing train dataset", ncols=80)
     ]
 
-    train_data, val_data, train_df, valid_df = train_test_split(tokenized_data, train_df, test_size=0.2, random_state=args.seed)
-    train_df.sort_values(by="id").to_csv(args.dataset_dir / 'train_split.csv', index=False)
-    valid_df.sort_values(by="id").to_csv(args.dataset_dir / 'valid_split.csv', index=False)
+    train_data, val_data, train_df, valid_df = train_test_split(
+        tokenized_data, train_df, test_size=0.2, random_state=args.seed
+    )
+    train_df.sort_values(by="id").to_csv(
+        args.dataset_dir / f"{args.file_prefix}train_split.csv", index=False
+    )
+    valid_df.sort_values(by="id").to_csv(
+        args.dataset_dir / f"{args.file_prefix}valid_split.csv", index=False
+    )
 
-    train_dataset_json = args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json"
+    train_dataset_json = (
+        args.dataset_dir / f"{args.file_prefix}train_{args.bert_name.replace('/', '-')}.json"
+    )
     with open(train_dataset_json, "w") as f:
         print(f"> Tokenized train dataset saved to {train_dataset_json}")
         json.dump(train_data, f, indent=2)
 
-    val_dataset_json = args.dataset_dir / f"val_{args.bert_name.replace('/', '-')}.json"
+    val_dataset_json = (
+        args.dataset_dir / f"{args.file_prefix}val_{args.bert_name.replace('/', '-')}.json"
+    )
     with open(val_dataset_json, "w") as f:
         print(f"> Tokenized validation dataset saved to {val_dataset_json}")
         json.dump(val_data, f, indent=2)
 
     # Handle testing data
-    test_df = pd.read_csv(args.dataset_dir / "test.csv")
+    test_df = pd.read_csv(args.dataset_dir / f"{args.file_prefix}test.csv")
 
     data = [
         {
             "id": row["id"],
             "address": row["raw_address"],
         }
-        for index, row in tqdm(
+        for _, row in tqdm(
             test_df.iterrows(), desc="Iterating test csv", total=len(test_df), ncols=80
         )
     ]
 
-    with open(args.dataset_dir / "test.json", "w") as f:
+    dump_json = args.dataset_dir / f"{args.file_prefix}test.json"
+    with open(dump_json, "w") as f:
         json.dump(data, f, indent=2)
-        print(f"> Raw Dataset saved to {args.dataset_dir / 'test.json'}")
+        print(f"> Raw Dataset saved to {dump_json}")
 
     tokenized_data = [
-        prepare(d, tokenizer, train=False) for d in tqdm(data, desc="Preparing test dataset", ncols=80)
+        prepare(d, tokenizer, train=False)
+        for d in tqdm(data, desc="Preparing test dataset", ncols=80)
     ]
 
-    test_dataset_json = args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json"
+    test_dataset_json = (
+        args.dataset_dir / f"{args.file_prefix}test_{args.bert_name.replace('/', '-')}.json"
+    )
     with open(test_dataset_json, "w") as f:
         json.dump(tokenized_data, f, indent=2)
 
