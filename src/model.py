@@ -47,6 +47,7 @@ class HamsBert(nn.Module):
         Arguments
             freeze_nums: int, meaning that freeze first k layers
         """
+        freeze_nums = min(freeze_nums, 12)
         print(f"Freeze first {freeze_nums} layers ...")
         for i, layer in enumerate(self.backbone.encoder.layer):
             if i < freeze_nums:
