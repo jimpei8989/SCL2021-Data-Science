@@ -42,6 +42,17 @@ class HamsBert(nn.Module):
         x = self.fc(x["last_hidden_state"])
         return x
 
+    def freeze(self, freeze_nums: int):
+        """
+        Arguments
+            freeze_nums: int, meaning that freeze first k layers
+        """
+        print(f"Freeze first {freeze_nums} layers ...")
+        for i, layer in enumerate(self.backbone.encoder.layer):
+            if i < freeze_nums:
+                for param in layer.parameters():
+                    param.requires_grad = False
+
 
 def get_default_model(model_name="cahya/bert-base-indonesian-522M"):
     tokenizer = BertTokenizer.from_pretrained(model_name)
@@ -51,6 +62,17 @@ def get_default_model(model_name="cahya/bert-base-indonesian-522M"):
 
 
 if __name__ == "__main__":
+    model = HamsBert.from_pretrained_bert(bert_name="cahya/bert-base-indonesian-522M")
+    for i, l in enumerate(model.backbone.encoder.layer):
+        if i < 3:
+            for param in l.parameters():
+                param.requires_grad = False
+            print(i, l)
+        if i == 3:
+            print(i, l)
+    # print(model.backbone.encoder.layer)
+    exit()
+
     tokenizer, model = get_default_model()
 
     text = "graha tirta,tirta dahlia no.5,waru,sidoarjo"

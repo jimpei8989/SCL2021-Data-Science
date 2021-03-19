@@ -127,6 +127,7 @@ def main(args):
             freeze_backbone=args.freeze_backbone,
             model_path=args.checkpoint_dir / "model_best.pt",
             device=args.device,
+            magic_method=args.magic_method,
         )
         if args.further_finetune:
             model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "model_best.pt")
@@ -207,6 +208,7 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_workers", type=int, default=1)
     parser.add_argument("--further_finetune", action="store_true")
+    parser.add_argument("--magic_method", action="store_true")
 
     # Filesystem
     parser.add_argument("--dataset_dir", type=Path, default="dataset/")
