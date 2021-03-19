@@ -102,16 +102,17 @@ def main(args):
 
         if args.warm_up:
             print("Warm up ...")
-            train(model,
-                  train_loader,
-                  val_loader,
-                  lr=1e-3,
-                  epochs=10,
-                  early_stopping=2,
-                  freeze_backbone=True,
-                  model_path=args.checkpoint_dir / "warmup.pt",
-                  device=args.device,
-                  )
+            train(
+                model,
+                train_loader,
+                val_loader,
+                lr=1e-3,
+                epochs=10,
+                early_stopping=2,
+                freeze_backbone=True,
+                model_path=args.checkpoint_dir / "warmup.pt",
+                device=args.device,
+            )
             model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "warmup.pt")
             print("Finishing warming up ...")
 
@@ -127,6 +128,23 @@ def main(args):
             model_path=args.checkpoint_dir / "model_best.pt",
             device=args.device,
         )
+        if args.further_finetune:
+            model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "model_best.pt")
+            torch.save(model.state_dict(), args.checkpoint_dir / "model_before_finetune.pt")
+            print("Perform further finetuning ...")
+
+            train(
+                model,
+                train_loader,
+                val_loader,
+                lr=args.learning_rate,
+                weight_decay=args.weight_decay,
+                epochs=args.epochs,
+                early_stopping=args.early_stopping,
+                freeze_backbone=True,
+                model_path=args.checkpoint_dir / "model_best.pt",
+                device=args.device,
+            )
 
     if args.do_evaluate:
         model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "model_best.pt")
@@ -188,6 +206,7 @@ def parse_args():
     parser.add_argument("--freeze_backbone", action="store_true")
     parser.add_argument("--batch_size", type=int, default=1)
     parser.add_argument("--num_workers", type=int, default=1)
+    parser.add_argument("--further_finetune", action="store_true")
 
     # Filesystem
     parser.add_argument("--dataset_dir", type=Path, default="dataset/")
