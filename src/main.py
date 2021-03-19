@@ -90,7 +90,17 @@ def main(args):
             )
         )
 
-        evaluate(model, tokenizer, args.checkpoint_dir, train_loader=train_loader, val_loader=val_loader, device=args.device)
+        evaluate(
+            model,
+            tokenizer,
+            args.checkpoint_dir,
+            remove_num=args.do_remove_num,
+            mapping_first=args.mapping_first,
+            premap=args.do_premap,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            device=args.device,
+        )
 
     if args.do_predict:
         model = HamsBert.from_checkpoint(args.checkpoint_dir)
@@ -99,10 +109,16 @@ def main(args):
         test_loader = to_dataloader(
             IndonesiaAddressDataset.from_json(
                 args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json",
-                train=False
+                train=False,
             )
         )
-        predict(model, tokenizer, test_loader, output_csv=args.output_csv, device=args.device)
+        predict(
+            model,
+            tokenizer,
+            test_loader,
+            output_csv=args.output_csv,
+            device=args.device,
+        )
 
 
 def parse_args():
@@ -126,17 +142,20 @@ def parse_args():
     parser.add_argument("--output_csv", type=Path, default="output.csv")
 
     # Actions
+    parser.add_argument("--do_premap", action="store_true")
+    parser.add_argument("--do_remove_num", action="store_true")
     parser.add_argument("--do_preprocess", action="store_true")
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_predict", action="store_true")
     parser.add_argument("--do_evaluate", action="store_true")
+    parser.add_argument("--mapping_first", action="store_true")
 
     # Misc
     parser.add_argument(
         "--seed", type=int, default=0x06902024 ^ 0x06902029 ^ 0x06902066 ^ 0x06902074
     )
     parser.add_argument("--cpu", action="store_true")
-    parser.add_argument("--gpu", default='0')
+    parser.add_argument("--gpu", default="0")
 
     args = parser.parse_args()
 

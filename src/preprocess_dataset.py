@@ -1,5 +1,6 @@
 import sys
 import json
+import re
 from tqdm import tqdm
 
 import pandas as pd
@@ -17,8 +18,12 @@ def prepare(data, tokenizer, train=True, debug=False):
         tokenized_poi = tokenizer.tokenize(data["poi"])
         tokenized_street = tokenizer.tokenize(data["street"])
 
-        poi_begin_index, poi_end_index = align_tokenized(tokenized_address, tokenized_poi)
-        street_begin_index, street_end_index = align_tokenized(tokenized_address, tokenized_street)
+        poi_begin_index, poi_end_index = align_tokenized(
+            tokenized_address, tokenized_poi
+        )
+        street_begin_index, street_end_index = align_tokenized(
+            tokenized_address, tokenized_street
+        )
 
         if debug:
             print(tokenized_address, tokenized_poi, tokenized_street, file=sys.stderr)
@@ -44,6 +49,9 @@ def prepare(data, tokenizer, train=True, debug=False):
 
 def preprocess_dataset(args):
     tokenizer = BertTokenizer.from_pretrained(args.bert_name)
+    if args.remove_num:
+        special_token_dict = {"additional_special_tokens": ["[NUM]"]}
+        tokenizer.add_special_tokens(special_token_dict)
 
     # Handle training data
     train_df = pd.read_csv(args.dataset_dir / "train.csv")
@@ -51,12 +59,15 @@ def preprocess_dataset(args):
     data = [
         {
             "id": row["id"],
-            "address": row["raw_address"],
-            "poi": row["POI/street"].split("/")[0],
-            "street": row["POI/street"].split("/")[1],
+            "address": remove_num(row["raw_address"], args.do_remove_num),
+            "poi": remove_num(row["POI/street"].split("/")[0], args.do_remove_num),
+            "street": remove_num(row["POI/street"].split("/")[1], args.do_remove_num),
         }
         for index, row in tqdm(
-            train_df.iterrows(), desc="Iterating train csv", total=len(train_df), ncols=80
+            train_df.iterrows(),
+            desc="Iterating train csv",
+            total=len(train_df),
+            ncols=80,
         )
     ]
 
@@ -65,14 +76,23 @@ def preprocess_dataset(args):
         print(f"> Raw Dataset saved to {args.dataset_dir / 'train.json'}")
 
     tokenized_data = [
-        prepare(d, tokenizer) for d in tqdm(data, desc="Preparing train dataset", ncols=80)
+        prepare(d, tokenizer)
+        for d in tqdm(data, desc="Preparing train dataset", ncols=80)
     ]
 
-    train_data, val_data, train_df, valid_df = train_test_split(tokenized_data, train_df, test_size=0.2, random_state=args.seed)
-    train_df.sort_values(by="id").to_csv(args.dataset_dir / 'train_split.csv', index=False)
-    valid_df.sort_values(by="id").to_csv(args.dataset_dir / 'valid_split.csv', index=False)
+    train_data, val_data, train_df, valid_df = train_test_split(
+        tokenized_data, train_df, test_size=0.2, random_state=args.seed
+    )
+    train_df.sort_values(by="id").to_csv(
+        args.dataset_dir / "train_split.csv", index=False
+    )
+    valid_df.sort_values(by="id").to_csv(
+        args.dataset_dir / "valid_split.csv", index=False
+    )
 
-    train_dataset_json = args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json"
+    train_dataset_json = (
+        args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json"
+    )
     with open(train_dataset_json, "w") as f:
         print(f"> Tokenized train dataset saved to {train_dataset_json}")
         json.dump(train_data, f, indent=2)
@@ -88,7 +108,7 @@ def preprocess_dataset(args):
     data = [
         {
             "id": row["id"],
-            "address": row["raw_address"],
+            "address": remove_num(row["raw_address"], args.remove_num),
         }
         for index, row in tqdm(
             test_df.iterrows(), desc="Iterating test csv", total=len(test_df), ncols=80
@@ -100,12 +120,19 @@ def preprocess_dataset(args):
         print(f"> Raw Dataset saved to {args.dataset_dir / 'test.json'}")
 
     tokenized_data = [
-        prepare(d, tokenizer, train=False) for d in tqdm(data, desc="Preparing test dataset", ncols=80)
+        prepare(d, tokenizer, train=False)
+        for d in tqdm(data, desc="Preparing test dataset", ncols=80)
     ]
 
-    test_dataset_json = args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json"
+    test_dataset_json = (
+        args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json"
+    )
     with open(test_dataset_json, "w") as f:
         json.dump(tokenized_data, f, indent=2)
+
+
+def remove_num(s, remove):
+    return re.sub("\d+", "0", s) if remove else s
 
 
 if __name__ == "__main__":
