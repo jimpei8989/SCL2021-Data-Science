@@ -105,7 +105,7 @@ def main(args):
             train(model,
                   train_loader,
                   val_loader,
-                  lr=1e-4,
+                  lr=1e-3,
                   epochs=10,
                   early_stopping=2,
                   freeze_backbone=True,
