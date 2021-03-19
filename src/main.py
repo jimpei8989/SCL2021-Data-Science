@@ -183,7 +183,7 @@ def parse_args():
     parser.add_argument("--warm_up", action="store_true")
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--learning_rate", type=float, default=1e-3)
-    parser.add_argument("--early_stopping", type=int, default=5)
+    parser.add_argument("--early_stopping", type=int, default=3)
     parser.add_argument("--weight_decay", type=float, default=0)
     parser.add_argument("--freeze_backbone", action="store_true")
     parser.add_argument("--batch_size", type=int, default=1)
