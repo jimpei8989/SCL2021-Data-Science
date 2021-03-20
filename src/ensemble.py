@@ -11,7 +11,7 @@ from reconstruct_tokenized import reconstruct
 from predict import to_continuous
 
 
-def reduce(probs: List[List[float]], method="average"):
+def reduce_scores(probs: List[List[float]], method="average"):
     if method == "average":
         return np.mean(probs, axis=0)
     elif method == "vote":
@@ -43,8 +43,12 @@ def main(args):
 
     outputs = []
     for i, sample in enumerate(tqdm(raw_outputs[0])):
-        scores_poi = to_continuous(reduce([ro[i]["scores_poi"] for ro in raw_outputs]))
-        scores_street = to_continuous(reduce([ro[i]["scores_street"] for ro in raw_outputs]))
+        scores_poi = to_continuous(
+            reduce_scores([ro[i]["poi_probs"] for ro in raw_outputs]), single=True
+        )
+        scores_street = to_continuous(
+            reduce_scores([ro[i]["street_probs"] for ro in raw_outputs]), single=True
+        )
 
         poi = reconstruct(sample["address"], sample["tokenized"], scores_poi)
         street = reconstruct(sample["address"], sample["tokenized"], scores_street)

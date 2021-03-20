@@ -8,7 +8,7 @@ import numpy as np
 from reconstruct_tokenized import reconstruct
 
 
-def to_continuous(mask):
+def to_continuous(mask, single):
     """
     mask: [List] value represents probability
     """
@@ -31,11 +31,11 @@ def to_continuous(mask):
         return [0] * max_rec[0] + [1] * (max_rec[1] - max_rec[0]) + [0] * (len(prob) - max_rec[1])
 
     mask = np.array(mask) - 0.5
-    ret = []
-    for m in mask:
-        ret.append(find_max_sub_arr(m))
 
-    return ret
+    if single:
+        return find_max_sub_arr(mask)
+    else:
+        return [find_max_sub_arr(m) for m in mask]
 
 
 def predict(model, tokenizer, test_dataloader, output_csv, device, output_probs_json=None):
@@ -51,8 +51,13 @@ def predict(model, tokenizer, test_dataloader, output_csv, device, output_probs_
             poi_masks = to_continuous(pred[..., 0].tolist())
             street_masks = to_continuous(pred[..., 1].tolist())
 
-            for ID, addr, poi_mask, street_mask in zip(
-                batch["id"], batch["address"], poi_masks, street_masks
+            for ID, addr, poi_probs, poi_mask, street_probs, street_mask in zip(
+                batch["id"],
+                batch["address"],
+                pred[..., 0].tolist(),
+                poi_masks,
+                pred[..., 1].tolist(),
+                street_masks,
             ):
                 tokenized = tokenizer.tokenize(addr)
                 poi = reconstruct(addr, tokenized, poi_mask[1 : len(tokenized) + 1])
@@ -63,8 +68,8 @@ def predict(model, tokenizer, test_dataloader, output_csv, device, output_probs_
                         "id": ID,
                         "address": addr,
                         "tokenized": tokenized,
-                        "scores_poi": pred[..., 0].tolist()[1 : len(tokenized) + 1],
-                        "scores_street": pred[..., 1].tolist()[1 : len(tokenized) + 1],
+                        "poi_probs": poi_probs[1 : len(tokenized) + 1],
+                        "street_probs": street_probs[1 : len(tokenized) + 1],
                     }
                 )
 
