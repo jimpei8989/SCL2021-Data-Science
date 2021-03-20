@@ -13,7 +13,7 @@ def evaluate(model, tokenizer, checkpoint_dir, train_loader=None, val_loader=Non
         if loader is not None:
             # predict and output
             opt_path = checkpoint_dir / f"{data_type}_opt.csv"
-            predict(model, tokenizer, loader, output_csv=opt_path, device=device, output_probs_json=f"{data_type}_rawopt.json")
+            predict(model, tokenizer, loader, output_csv=opt_path, device=device, output_probs_json=checkpoint_dir / f"{data_type}_rawopt.json")
 
             # mapping
             opt_map_path = checkpoint_dir / f"{data_type}_map_opt.csv"
