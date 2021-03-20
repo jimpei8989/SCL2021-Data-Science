@@ -44,10 +44,10 @@ def main(args):
     outputs = []
     for i, sample in enumerate(tqdm(raw_outputs[0])):
         scores_poi = to_continuous(
-            reduce_scores([ro[i]["poi_probs"] for ro in raw_outputs]), single=True
+            reduce_scores([ro[i]["poi_probs"] for ro in raw_outputs], method=args.method), single=True
         )
         scores_street = to_continuous(
-            reduce_scores([ro[i]["street_probs"] for ro in raw_outputs]), single=True
+            reduce_scores([ro[i]["street_probs"] for ro in raw_outputs], method=args.method), single=True
         )
 
         poi = reconstruct(sample["address"], sample["tokenized"], scores_poi)
