@@ -112,7 +112,7 @@ def train(
     min_val_loss, not_improved = 100000, 0
     for e in range(epochs):
         if magic_method:
-            model.freeze(freeze_nums=6 + e)
+            model.freeze(freeze_nums=4 + e)
         print(f"Epoch {e+1}/{epochs}")
         train_time, (train_loss, train_token_acc, train_sentence_acc) = iterate_dataloader(
             train_loader, train=True
