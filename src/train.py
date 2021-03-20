@@ -43,6 +43,8 @@ def train(
     freeze_backbone=False,
     model_path=None,
     device=None,
+    add_classification=False,
+    beta=1,
 ):
     """
     Training function
@@ -56,6 +58,7 @@ def train(
         model_path: (str) if not None, save the best model to the path
     """
     criterion = nn.BCELoss()
+    classification_criterion = nn.CrossEntropyLoss()
     if freeze_backbone:
         optimizer = Adam(model.fc.parameters(), lr=lr, weight_decay=weight_decay)
     else:
@@ -73,13 +76,25 @@ def train(
                 if train:
                     optimizer.zero_grad()
 
-                pred = model(batch["input_ids"].to(device))
+                if not add_classification:
+                    pred = model(batch["input_ids"].to(device))
 
-                # Apply mask
-                pred = pred * batch["mask"].to(device).unsqueeze(-1)
+                    # Apply mask
+                    pred = pred * batch["mask"].to(device).unsqueeze(-1)
 
-                y = torch.stack([batch["scores_poi"], batch["scores_street"]], dim=-1).to(device)
-                loss = criterion(pred, y.to(device))
+                    y = torch.stack([batch["scores_poi"], batch["scores_street"]], dim=-1).to(device)
+                    loss = criterion(pred, y.to(device))
+
+                else:
+                    pred, new_pred = model(batch["input_ids"].to(device))
+                    pred = pred * batch["mask"].to(device).unsqueeze(-1)
+                    new_pred = new_pred * batch["mask"].to(device).unsqueeze(-1)
+                    y = torch.stack([batch["scores_poi"], batch["scores_street"]], dim=-1).to(device)
+                    new_y = (batch['scores_poi'] * 2 + batch['scores_street']).to(torch.int64)
+                    new_pred = new_pred.permute(0, 2, 1)
+                    # print(new_pred.shape)
+                    loss = criterion(pred, y.to(device)) + beta * classification_criterion(new_pred, new_y.to(device))
+
 
                 # loss_poi = criterion(pred[..., 0], batch["scores_poi"].to(device))
                 # loss_street = criterion(pred[..., 1], batch["scores_street"].to(device))

@@ -29,6 +29,11 @@ class HamsBert(nn.Module):
         super().__init__()
         self.backbone = backbone or BertModel.from_pretrained("cahya/bert-base-indonesian-522M")
         self.fc = nn.Sequential(nn.Linear(768, 2), nn.Sigmoid())
+        self.add_classification = False
+        self.new_fc = nn.Linear(768, 4)
+
+    def set_add_classification(self):
+        self.add_classification = True
 
     def forward(self, x):
         """
@@ -39,7 +44,11 @@ class HamsBert(nn.Module):
             y: torch.FloatTensor, of shape (BS, sequence length, 2)
         """
         x = self.backbone(input_ids=x)
-        x = self.fc(x["last_hidden_state"])
+        if self.add_classification:
+            new_x = self.new_fc(x['last_hidden_state'])
+            x = self.fc(x["last_hidden_state"])
+            return x, new_x
+        x = self.fc(x['last_hidden_state'])
         return x
 
 

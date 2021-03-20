@@ -100,6 +100,9 @@ def main(args):
         if not args.checkpoint_dir.is_dir():
             args.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
+        if args.add_classification:
+            model.set_add_classification()
+
         if args.warm_up:
             print("Warm up ...")
             train(
@@ -112,6 +115,7 @@ def main(args):
                 freeze_backbone=True,
                 model_path=args.checkpoint_dir / "warmup.pt",
                 device=args.device,
+                add_classification=args.add_classification,
             )
             model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "warmup.pt")
             print("Finishing warming up ...")
@@ -127,6 +131,8 @@ def main(args):
             freeze_backbone=args.freeze_backbone,
             model_path=args.checkpoint_dir / "model_best.pt",
             device=args.device,
+            add_classification=args.add_classification,
+            beta=args.beta
         )
 
     if args.do_evaluate:
@@ -188,6 +194,8 @@ def parse_args():
     parser.add_argument("--mlm_batch_size", type=int, default=1)
 
     # Trainers
+    parser.add_argument('--add_classification', '-ac', action='store_true')
+    parser.add_argument('--beta', type=float, default=1)
     parser.add_argument("--warm_up", action="store_true")
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--learning_rate", type=float, default=1e-3)
