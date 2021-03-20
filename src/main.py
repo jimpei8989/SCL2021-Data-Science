@@ -90,7 +90,7 @@ def main(args):
         )
 
         if (args.pretrain_dir / "further_pretrained").is_dir():
-            print('Using further pretrained weights')
+            print("Using further pretrained weights")
             model = HamsBert.from_pretrained_bert(
                 checkpoint_path=args.pretrain_dir / "further_pretrained"
             )
@@ -102,16 +102,17 @@ def main(args):
 
         if args.warm_up:
             print("Warm up ...")
-            train(model,
-                  train_loader,
-                  val_loader,
-                  lr=1e-3,
-                  epochs=10,
-                  early_stopping=2,
-                  freeze_backbone=True,
-                  model_path=args.checkpoint_dir / "warmup.pt",
-                  device=args.device,
-                  )
+            train(
+                model,
+                train_loader,
+                val_loader,
+                lr=1e-3,
+                epochs=10,
+                early_stopping=2,
+                freeze_backbone=True,
+                model_path=args.checkpoint_dir / "warmup.pt",
+                device=args.device,
+            )
             model = HamsBert.from_checkpoint(checkpoint_path=args.checkpoint_dir / "warmup.pt")
             print("Finishing warming up ...")
 
@@ -164,7 +165,14 @@ def main(args):
                 args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json", train=False
             )
         )
-        predict(model, tokenizer, test_loader, output_csv=args.output_csv, device=args.device)
+        predict(
+            model,
+            tokenizer,
+            test_loader,
+            output_csv=args.output_csv,
+            device=args.device,
+            output_probs_json=args.output_probs_json,
+        )
 
 
 def parse_args():
@@ -194,6 +202,7 @@ def parse_args():
     parser.add_argument("--checkpoint_dir", type=Path, default="checkpoints/default/")
     parser.add_argument("--pretrain_dir", type=Path, default="checkpoints")
     parser.add_argument("--output_csv", type=Path, default="output.csv")
+    parser.add_argument("--output_probs_json", type=Path, default="output_probs.json")
 
     # Actions
     parser.add_argument("--do_preprocess", action="store_true")
