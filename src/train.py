@@ -8,11 +8,12 @@ from utils.timer import timer
 
 
 def evaluate(model, tokenizer, checkpoint_dir, train_loader=None, val_loader=None, device=None):
-    for loader, data_type in zip([train_loader, val_loader], ["train", "val"]):
+    # for loader, data_type in zip([train_loader, val_loader], ["train", "val"]):
+    for loader, data_type in zip([val_loader], ["val"]):
         if loader is not None:
             # predict and output
             opt_path = checkpoint_dir / f"{data_type}_opt.csv"
-            predict(model, tokenizer, loader, output_csv=opt_path, device=device)
+            predict(model, tokenizer, loader, output_csv=opt_path, device=device, output_probs_json=checkpoint_dir / f"{data_type}_rawopt.json")
 
             # mapping
             opt_map_path = checkpoint_dir / f"{data_type}_map_opt.csv"
