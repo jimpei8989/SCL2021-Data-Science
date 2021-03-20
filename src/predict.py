@@ -8,7 +8,7 @@ import numpy as np
 from reconstruct_tokenized import reconstruct
 
 
-def to_continuous(mask, single):
+def to_continuous(mask, single=False):
     """
     mask: [List] value represents probability
     """
@@ -48,8 +48,8 @@ def predict(model, tokenizer, test_dataloader, output_csv, device, output_probs_
         for batch in tqdm(test_dataloader, ncols=80, desc="Predicting"):
             pred = model(batch["input_ids"].to(device)).to("cpu")
 
-            poi_masks = to_continuous(pred[..., 0].tolist())
-            street_masks = to_continuous(pred[..., 1].tolist())
+            poi_masks = to_continuous(pred[..., 0].tolist(), single=False)
+            street_masks = to_continuous(pred[..., 1].tolist(), single=False)
 
             for ID, addr, poi_probs, poi_mask, street_probs, street_mask in zip(
                 batch["id"],
@@ -60,16 +60,16 @@ def predict(model, tokenizer, test_dataloader, output_csv, device, output_probs_
                 street_masks,
             ):
                 tokenized = tokenizer.tokenize(addr)
-                poi = reconstruct(addr, tokenized, poi_mask[1 : len(tokenized) + 1])
-                street = reconstruct(addr, tokenized, street_mask[1 : len(tokenized) + 1])
+                poi = reconstruct(addr, tokenized, poi_mask[1: len(tokenized) + 1])
+                street = reconstruct(addr, tokenized, street_mask[1: len(tokenized) + 1])
                 outputs.append([ID, f"{poi}/{street}"])
                 raw_outputs.append(
                     {
                         "id": ID,
                         "address": addr,
                         "tokenized": tokenized,
-                        "poi_probs": poi_probs[1 : len(tokenized) + 1],
-                        "street_probs": street_probs[1 : len(tokenized) + 1],
+                        "poi_probs": poi_probs[1: len(tokenized) + 1],
+                        "street_probs": street_probs[1: len(tokenized) + 1],
                     }
                 )
 
