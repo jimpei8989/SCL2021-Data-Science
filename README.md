@@ -14,7 +14,7 @@ python3 src/main.py --do_preprocess
 
 #### Help message
 
-```
+```sh
 usage: main.py [-h] [--bert_name BERT_NAME] [--mlm_epochs MLM_EPOCHS] [--mlm_learning_rate MLM_LEARNING_RATE]               [--mlm_weight_decay MLM_WEIGHT_DECAY] [--mlm_batch_size MLM_BATCH_SIZE] [--warm_up] [--epochs EPOCHS]
                [--learning_rate LEARNING_RATE] [--early_stopping EARLY_STOPPING] [--weight_decay WEIGHT_DECAY]
                [--freeze_backbone] [--batch_size BATCH_SIZE] [--num_workers NUM_WORKERS] [--dataset_dir DATASET_DIR]
@@ -27,19 +27,19 @@ usage: main.py [-h] [--bert_name BERT_NAME] [--mlm_epochs MLM_EPOCHS] [--mlm_lea
 
 ##### Training
 
-```
+```sh
 python src/main.py --do_train
 ```
 
 ##### Prediction
 
-```
+```sh
 python src/main.py --do_predict --output_csv [.csv path]
 ```
 
 ##### MLM futher pretrain
 
-```
+```sh
 python src/main.py --do_pretrain
 ```
 
