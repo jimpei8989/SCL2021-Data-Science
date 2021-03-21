@@ -9,31 +9,32 @@ from sklearn.model_selection import train_test_split
 from dataset_utils import align_tokenized, generate_fake_dataset
 
 
-def prepare(data, tokenizer, debug=False):
+def prepare(data, tokenizer, train=True, debug=False):
     tokenized_address = ["[CLS]"] + tokenizer.tokenize(data["address"]) + ["[SEP]"]
-    tokenized_poi = tokenizer.tokenize(data["poi"])
-    tokenized_street = tokenizer.tokenize(data["street"])
+    data |= {"input_ids": tokenizer.convert_tokens_to_ids(tokenized_address)}
 
-    poi_begin_index, poi_end_index = align_tokenized(tokenized_address, tokenized_poi)
-    street_begin_index, street_end_index = align_tokenized(tokenized_address, tokenized_street)
+    if train:
+        tokenized_poi = tokenizer.tokenize(data["poi"])
+        tokenized_street = tokenizer.tokenize(data["street"])
 
-    if debug:
-        print(tokenized_address, tokenized_poi, tokenized_street, file=sys.stderr)
-        print(poi_begin_index, poi_end_index)
-        print(street_begin_index, street_end_index)
+        poi_begin_index, poi_end_index = align_tokenized(tokenized_address, tokenized_poi)
+        street_begin_index, street_end_index = align_tokenized(tokenized_address, tokenized_street)
 
-    data |= {
-        "prepared": True,
-        "input_ids": tokenizer.convert_tokens_to_ids(tokenized_address),
-        "scores_poi": [
-            1 if poi_begin_index <= i <= poi_end_index else 0
-            for i in range(len(tokenized_address))
-        ],
-        "scores_street": [
-            1 if street_begin_index <= i <= street_end_index else 0
-            for i in range(len(tokenized_address))
-        ],
-    }
+        if debug:
+            print(tokenized_address, tokenized_poi, tokenized_street, file=sys.stderr)
+            print(poi_begin_index, poi_end_index)
+            print(street_begin_index, street_end_index)
+
+        data |= {
+            "scores_poi": [
+                1 if poi_begin_index <= i <= poi_end_index else 0
+                for i in range(len(tokenized_address))
+            ],
+            "scores_street": [
+                1 if street_begin_index <= i <= street_end_index else 0
+                for i in range(len(tokenized_address))
+            ],
+        }
 
     if debug:
         print(data)
@@ -44,6 +45,7 @@ def prepare(data, tokenizer, debug=False):
 def preprocess_dataset(args):
     tokenizer = BertTokenizer.from_pretrained(args.bert_name)
 
+    # Handle training data
     train_df = pd.read_csv(args.dataset_dir / "train.csv")
 
     data = [
@@ -62,9 +64,13 @@ def preprocess_dataset(args):
         json.dump(data, f, indent=2)
         print(f"> Raw Dataset saved to {args.dataset_dir / 'train.json'}")
 
-    tokenized_data = [prepare(d, tokenizer) for d in tqdm(data, desc="Preparing dataset", ncols=80)]
+    tokenized_data = [
+        prepare(d, tokenizer) for d in tqdm(data, desc="Preparing train dataset", ncols=80)
+    ]
 
-    train_data, val_data = train_test_split(tokenized_data, test_size=0.2, random_state=args.seed)
+    train_data, val_data, train_df, valid_df = train_test_split(tokenized_data, train_df, test_size=0.2, random_state=args.seed)
+    train_df.sort_values(by="id").to_csv(args.dataset_dir / 'train_split.csv', index=False)
+    valid_df.sort_values(by="id").to_csv(args.dataset_dir / 'valid_split.csv', index=False)
 
     train_dataset_json = args.dataset_dir / f"train_{args.bert_name.replace('/', '-')}.json"
     with open(train_dataset_json, "w") as f:
@@ -76,6 +82,30 @@ def preprocess_dataset(args):
         print(f"> Tokenized validation dataset saved to {val_dataset_json}")
         json.dump(val_data, f, indent=2)
 
+    # Handle testing data
+    test_df = pd.read_csv(args.dataset_dir / "test.csv")
+
+    data = [
+        {
+            "id": row["id"],
+            "address": row["raw_address"],
+        }
+        for index, row in tqdm(
+            test_df.iterrows(), desc="Iterating test csv", total=len(test_df), ncols=80
+        )
+    ]
+
+    with open(args.dataset_dir / "test.json", "w") as f:
+        json.dump(data, f, indent=2)
+        print(f"> Raw Dataset saved to {args.dataset_dir / 'test.json'}")
+
+    tokenized_data = [
+        prepare(d, tokenizer, train=False) for d in tqdm(data, desc="Preparing test dataset", ncols=80)
+    ]
+
+    test_dataset_json = args.dataset_dir / f"test_{args.bert_name.replace('/', '-')}.json"
+    with open(test_dataset_json, "w") as f:
+        json.dump(tokenized_data, f, indent=2)
 
 
 if __name__ == "__main__":

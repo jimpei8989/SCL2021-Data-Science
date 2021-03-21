@@ -1,5 +1,8 @@
 from typing import List, Tuple
 
+import torch
+from torch.nn.utils.rnn import pad_sequence
+
 
 def generate_fake_dataset():
     return [
@@ -70,3 +73,16 @@ def align_tokenized(address: List[str], target: List[str]) -> Tuple[int, int]:
                 if index_t == len(target):
                     return i, index_a - 1
         return -2, -2
+
+
+def create_batch(samples):
+    return {
+        k: [s[k] for s in samples]
+        if not isinstance(samples[0][k], torch.Tensor)
+        else pad_sequence([s[k] for s in samples], batch_first=True)
+        for k in samples[0]
+    } | {
+        "mask": pad_sequence(
+            [torch.ones(s["input_ids"].shape[0]) for s in samples], batch_first=True
+        )
+    }
